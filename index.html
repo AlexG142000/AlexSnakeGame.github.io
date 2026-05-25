@@ -26,44 +26,33 @@
 
         .container {
             width: 80vw;
-            max-width: 1200px;
+            max-width: 1100px;
             height: 95vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
             background: #000000;
             border: 4px solid #00ff00;
-            box-shadow: 0 0 20px #00ff00, inset 0 0 20px rgba(0, 255, 0, 0.1);
-            padding: 20px;
+            box-shadow: 0 0 16px #00ff00, inset 0 0 14px rgba(0, 255, 0, 0.1);
+            padding: 18px;
             border-radius: 8px;
         }
 
         h1 {
-            font-size: clamp(1.8rem, 4vw, 3.2rem);
+            font-size: clamp(1.6rem, 3.5vw, 3rem);
             text-align: center;
-            text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+            text-shadow: 0 0 10px #00ff00, 0 0 16px #00ff00;
             letter-spacing: 3px;
-            animation: flicker 0.25s infinite;
             line-height: 1.1;
-        }
-
-        @keyframes flicker {
-            0%, 100% {
-                text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
-            }
-
-            50% {
-                text-shadow: 0 0 5px #00ff00;
-            }
         }
 
         .scorecard {
             width: 70%;
             display: flex;
             justify-content: center;
-            gap: 24px;
-            font-size: 1.1em;
+            gap: 20px;
+            font-size: 1.05em;
         }
 
         .score-item {
@@ -73,13 +62,13 @@
             flex-direction: column;
             align-items: center;
             border: 2px solid #ff00ff;
-            padding: 14px 18px;
+            padding: 12px 16px;
             background: rgba(255, 0, 255, 0.1);
-            box-shadow: 0 0 10px #ff00ff;
+            box-shadow: 0 0 8px #ff00ff;
         }
 
         .score-label {
-            font-size: clamp(0.65rem, 1.1vw, 0.95rem);
+            font-size: clamp(0.65rem, 1vw, 0.9rem);
             color: #00ffff;
             margin-bottom: 6px;
             text-transform: uppercase;
@@ -89,7 +78,7 @@
         }
 
         .score-value {
-            font-size: clamp(1.3rem, 2.4vw, 2rem);
+            font-size: clamp(1.3rem, 2.2vw, 1.9rem);
             color: #ffff00;
             font-weight: bold;
             text-shadow: 0 0 5px #ffff00;
@@ -97,29 +86,30 @@
 
         #gameCanvas {
             width: 80%;
-            max-height: 620px;
+            max-width: 960px;
+            max-height: 520px;
             flex: 1;
             min-height: 0;
             border: 3px solid #00ff00;
             background: #1a1a1a;
-            box-shadow: 0 0 18px rgba(0, 255, 0, 0.45);
+            box-shadow: 0 0 14px rgba(0, 255, 0, 0.45);
             image-rendering: pixelated;
             display: block;
         }
 
         .button-group {
             display: flex;
-            gap: 24px;
+            gap: 22px;
             justify-content: center;
             align-items: center;
-            margin-top: 6px;
-            margin-bottom: 4px;
+            margin-top: 4px;
+            margin-bottom: 2px;
             flex-wrap: wrap;
         }
 
         button {
-            padding: 12px 32px;
-            font-size: clamp(0.85rem, 1.2vw, 1.1rem);
+            padding: 11px 30px;
+            font-size: clamp(0.85rem, 1.1vw, 1rem);
             font-family: 'Courier New', monospace;
             background: linear-gradient(135deg, #ff00ff, #00ffff);
             color: #000000;
@@ -128,14 +118,14 @@
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 2px;
-            box-shadow: 0 0 10px #ff00ff;
-            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+            box-shadow: 0 0 8px #ff00ff;
+            transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
         }
 
         button:hover {
             background: linear-gradient(135deg, #ffff00, #ff00ff);
-            box-shadow: 0 0 16px #ffff00;
-            transform: scale(1.04);
+            box-shadow: 0 0 14px #ffff00;
+            transform: scale(1.03);
         }
 
         button:active {
@@ -162,58 +152,47 @@
 
         .game-over-content {
             width: 80vw;
-            max-width: 1200px;
+            max-width: 1100px;
             min-height: 80vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 20px;
+            gap: 18px;
             text-align: center;
             border: 4px solid #00ff00;
-            padding: 36px;
+            padding: 34px;
             background: rgba(0, 0, 0, 0.98);
-            box-shadow: 0 0 30px #00ff00, inset 0 0 20px rgba(0, 255, 0, 0.1);
+            box-shadow: 0 0 24px #00ff00, inset 0 0 16px rgba(0, 255, 0, 0.1);
         }
 
         .game-over-content h2 {
-            font-size: clamp(2.2rem, 5vw, 5rem);
+            font-size: clamp(2rem, 4.5vw, 4.5rem);
             color: #00ff00;
-            text-shadow: 0 0 20px #00ff00;
+            text-shadow: 0 0 16px #00ff00;
             letter-spacing: 4px;
             line-height: 1.1;
-            animation: pulse 0.65s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.03);
-            }
         }
 
         .final-score {
-            font-size: clamp(1rem, 2vw, 1.8rem);
+            font-size: clamp(1rem, 1.8vw, 1.6rem);
             color: #ffff00;
-            text-shadow: 0 0 8px #ffff00;
+            text-shadow: 0 0 7px #ffff00;
         }
 
         .philosophy-quote {
             width: 90%;
-            max-width: 950px;
-            font-size: clamp(1rem, 2.2vw, 2.2rem);
+            max-width: 900px;
+            font-size: clamp(0.95rem, 2vw, 1.9rem);
             color: #00ffff;
             font-style: italic;
-            padding: 22px;
+            padding: 20px;
             border-left: 5px solid #00ffff;
             background: rgba(0, 255, 255, 0.12);
-            line-height: 1.4;
-            text-shadow: 0 0 10px #00ffff;
+            line-height: 1.35;
+            text-shadow: 0 0 8px #00ffff;
             overflow-wrap: break-word;
-            max-height: 40vh;
+            max-height: 38vh;
             overflow-y: auto;
         }
 
@@ -241,20 +220,20 @@
 
             #gameCanvas {
                 width: 95%;
-                max-height: 520px;
+                max-height: 460px;
             }
 
             .game-over-content {
                 width: 95vw;
                 min-height: 85vh;
-                padding: 24px;
+                padding: 22px;
             }
 
             .philosophy-quote {
                 width: 95%;
-                font-size: clamp(0.9rem, 3.8vw, 1.4rem);
-                padding: 18px;
-                max-height: 34vh;
+                font-size: clamp(0.85rem, 3.4vw, 1.25rem);
+                padding: 16px;
+                max-height: 32vh;
                 overflow-y: auto;
             }
         }
@@ -262,7 +241,6 @@
 </head>
 
 <body>
-    <audio id="moveSFX" src="move.mp3" preload="auto"></audio>
     <audio id="eatSFX" src="eat.mp3" preload="auto"></audio>
     <audio id="gameOverSFX" src="gameover.mp3" preload="auto"></audio>
 
@@ -306,16 +284,15 @@
         const highScoreDisplay = document.getElementById('highScore');
         const gameOverScreen = document.getElementById('gameOverScreen');
 
-        const moveSFX = document.getElementById('moveSFX');
         const eatSFX = document.getElementById('eatSFX');
         const gameOverSFX = document.getElementById('gameOverSFX');
 
         const gridSize = 20;
-        const startSpeed = 100;
-        const maxSpeed = 50;
-        const speedStep = 10;
+
+        const startSpeed = 110;
+        const minSpeed = 60;
+        const speedStep = 8;
         const fruitsPerSpeedUp = 5;
-        const moveSoundEvery = 4;
 
         let tileCountX = 40;
         let tileCountY = 25;
@@ -327,19 +304,14 @@
         let nextDirection = { x: 1, y: 0 };
 
         let score = 0;
-        let moveCounter = 0;
+        let highScore = Number(localStorage.getItem('snakeHighScore')) || 0;
 
         let gameRunning = false;
         let gamePaused = false;
         let gameStarted = false;
 
-        let animationFrameId = null;
-        let lastFrameTime = 0;
-        let accumulatedTime = 0;
-        let needsRender = true;
-
-        let highScore = Number(localStorage.getItem('snakeHighScore')) || 0;
         let gameSpeed = startSpeed;
+        let gameTimer = null;
 
         let gridCanvas = document.createElement('canvas');
         let gridCtx = gridCanvas.getContext('2d', { alpha: false });
@@ -350,12 +322,9 @@
             '"WALANG HIMALA!" — NORA AUNOR',
             '"I DON’T CARE." — KRIS AQUINO',
             '"LOVE LOVE LOVE!" — KRIS AQUINO',
-            '"SINONG MAY SALA? SINONG DAPAT SISIHIN?" — MIRIAM DEFENSOR SANTIAGO',
-            '"ANG KABATAAN ANG PAG-ASA NG BAYAN." — JOSÉ RIZAL',
             '"DO NOT TOUCH MY COUNTRYMAN." — ROBIN PADILLA',
             '"I DO NOT CARE ABOUT HUMAN RIGHTS, I CARE ABOUT HUMAN LIVES." — RODRIGO DUTERTE',
 
-            '"EXISTENCE PRECEDES ESSENCE." — JEAN-PAUL SARTRE',
             '"HELL IS OTHER PEOPLE." — JEAN-PAUL SARTRE',
             '"MAN IS CONDEMNED TO BE FREE." — JEAN-PAUL SARTRE',
             '"GOD IS DEAD. GOD REMAINS DEAD. AND WE HAVE KILLED HIM." — FRIEDRICH NIETZSCHE',
@@ -372,7 +341,6 @@
             '"VANITY OF VANITIES; ALL IS VANITY." — ECCLESIASTES 1:2',
             '"THE WAGES OF SIN IS DEATH." — ROMANS 6:23',
             '"LET THE DEAD BURY THEIR DEAD." — MATTHEW 8:22',
-            '"MY GOD, MY GOD, WHY HAVE YOU FORSAKEN ME?" — MATTHEW 27:46'
         ];
 
         const colors = {
@@ -383,35 +351,83 @@
             grid: '#003300'
         };
 
-        highScoreDisplay.textContent = highScore;
-
-        moveSFX.volume = 0.12;
         eatSFX.volume = 0.45;
         gameOverSFX.volume = 0.55;
 
-        function markDirty() {
-            needsRender = true;
+        highScoreDisplay.textContent = highScore;
+
+        function getRandomQuote() {
+            return philosophyQuotes[Math.floor(Math.random() * philosophyQuotes.length)];
+        }
+
+        function playSound(sound) {
+            try {
+                sound.pause();
+                sound.currentTime = 0;
+
+                const playPromise = sound.play();
+
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {});
+                }
+            } catch (error) {}
+        }
+
+        function playCrunchSound() {
+            playSound(eatSFX);
+        }
+
+        function playExplosionSound() {
+            playSound(gameOverSFX);
+        }
+
+        function clearGameTimer() {
+            if (gameTimer) {
+                clearInterval(gameTimer);
+                gameTimer = null;
+            }
+        }
+
+        function startGameTimer() {
+            clearGameTimer();
+
+            gameTimer = setInterval(() => {
+                if (!gameRunning || gamePaused || !gameStarted) return;
+
+                update();
+                draw();
+            }, gameSpeed);
+        }
+
+        function restartGameTimerWithNewSpeed() {
+            if (gameRunning && gameStarted && !gamePaused) {
+                startGameTimer();
+            }
         }
 
         function resizeCanvas() {
             const rect = canvas.getBoundingClientRect();
 
-            const width = Math.floor(rect.width / gridSize) * gridSize;
-            const height = Math.floor(rect.height / gridSize) * gridSize;
+            const rawWidth = Math.floor(rect.width / gridSize) * gridSize;
+            const rawHeight = Math.floor(rect.height / gridSize) * gridSize;
 
-            canvas.width = Math.max(width, 400);
-            canvas.height = Math.max(height, 300);
+            canvas.width = Math.max(rawWidth, 400);
+            canvas.height = Math.max(rawHeight, 300);
 
             tileCountX = canvas.width / gridSize;
             tileCountY = canvas.height / gridSize;
 
             buildGridCanvas();
-            markDirty();
-            drawIfNeeded();
+            draw();
         }
 
         window.addEventListener('resize', () => {
+            clearGameTimer();
             resizeCanvas();
+
+            if (gameRunning && gameStarted && !gamePaused) {
+                startGameTimer();
+            }
         });
 
         function buildGridCanvas() {
@@ -441,35 +457,6 @@
             gridCtx.stroke();
         }
 
-        function playSound(sound) {
-            try {
-                sound.pause();
-                sound.currentTime = 0;
-
-                const playPromise = sound.play();
-
-                if (playPromise !== undefined) {
-                    playPromise.catch(() => {});
-                }
-            } catch (error) {}
-        }
-
-        function playMoveSound() {
-            moveCounter++;
-
-            if (moveCounter % moveSoundEvery === 0) {
-                playSound(moveSFX);
-            }
-        }
-
-        function playCrunchSound() {
-            playSound(eatSFX);
-        }
-
-        function playExplosionSound() {
-            playSound(gameOverSFX);
-        }
-
         document.addEventListener('keydown', handleKeyPress);
 
         function handleKeyPress(e) {
@@ -487,8 +474,7 @@
 
             if (!gameStarted && gameRunning && isDirectionKey) {
                 gameStarted = true;
-                accumulatedTime = gameSpeed;
-                markDirty();
+                startGameTimer();
             }
 
             switch (key) {
@@ -532,58 +518,17 @@
 
             gamePaused = !gamePaused;
 
-            if (!gamePaused) {
-                lastFrameTime = 0;
+            if (gamePaused) {
+                clearGameTimer();
+            } else if (gameStarted) {
+                startGameTimer();
             }
 
-            markDirty();
-        }
-
-        function getRandomQuote() {
-            return philosophyQuotes[Math.floor(Math.random() * philosophyQuotes.length)];
-        }
-
-        function clearGameLoop() {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-            }
-
-            lastFrameTime = 0;
-            accumulatedTime = 0;
-        }
-
-        function startGameLoop() {
-            clearGameLoop();
-            animationFrameId = requestAnimationFrame(gameLoop);
-        }
-
-        function gameLoop(timestamp) {
-            if (!gameRunning) return;
-
-            if (!lastFrameTime) {
-                lastFrameTime = timestamp;
-            }
-
-            const deltaTime = timestamp - lastFrameTime;
-            lastFrameTime = timestamp;
-
-            if (gameStarted && !gamePaused) {
-                accumulatedTime += deltaTime;
-
-                while (accumulatedTime >= gameSpeed && gameRunning && !gamePaused) {
-                    update();
-                    accumulatedTime -= gameSpeed;
-                }
-            }
-
-            drawIfNeeded();
-
-            animationFrameId = requestAnimationFrame(gameLoop);
+            draw();
         }
 
         function startGame() {
-            clearGameLoop();
+            clearGameTimer();
 
             snake = [{
                 x: Math.floor(tileCountX / 2),
@@ -594,7 +539,6 @@
             nextDirection = { x: 1, y: 0 };
 
             score = 0;
-            moveCounter = 0;
             gameSpeed = startSpeed;
 
             generateFood();
@@ -606,13 +550,11 @@
 
             gameOverScreen.classList.remove('active');
 
-            markDirty();
-            drawIfNeeded();
-            startGameLoop();
+            draw();
         }
 
         function resetGame() {
-            clearGameLoop();
+            clearGameTimer();
 
             snake = [{
                 x: Math.floor(tileCountX / 2),
@@ -623,11 +565,10 @@
             nextDirection = { x: 1, y: 0 };
 
             score = 0;
-            moveCounter = 0;
             gameSpeed = startSpeed;
 
-            gamePaused = false;
             gameRunning = false;
+            gamePaused = false;
             gameStarted = false;
 
             generateFood();
@@ -635,14 +576,13 @@
 
             gameOverScreen.classList.remove('active');
 
-            markDirty();
-            drawIfNeeded();
+            draw();
         }
 
         function generateFood() {
+            let newX;
+            let newY;
             let validPosition = false;
-            let newX = 0;
-            let newY = 0;
 
             while (!validPosition) {
                 newX = Math.floor(Math.random() * tileCountX);
@@ -693,17 +633,16 @@
                 playCrunchSound();
 
                 if (score % fruitsPerSpeedUp === 0) {
-                    gameSpeed = Math.max(maxSpeed, gameSpeed - speedStep);
+                    gameSpeed = Math.max(minSpeed, gameSpeed - speedStep);
+                    restartGameTimerWithNewSpeed();
                 }
 
                 generateFood();
             } else {
                 snake.pop();
-                playMoveSound();
             }
 
             updateDisplay();
-            markDirty();
         }
 
         function updateDisplay() {
@@ -711,33 +650,16 @@
             highScoreDisplay.textContent = highScore;
         }
 
-        function drawIfNeeded() {
-            if (!needsRender) return;
-
-            draw();
-            needsRender = false;
-        }
-
         function draw() {
-            ctx.shadowBlur = 0;
             ctx.drawImage(gridCanvas, 0, 0);
 
-            drawSnake();
-            drawFood();
-            drawOverlayText();
-        }
-
-        function drawSnake() {
             for (let i = snake.length - 1; i >= 0; i--) {
                 const segment = snake[i];
 
                 if (i === 0) {
                     ctx.fillStyle = colors.snakeHead;
-                    ctx.shadowBlur = 3;
-                    ctx.shadowColor = colors.snakeHead;
                 } else {
                     ctx.fillStyle = colors.snake;
-                    ctx.shadowBlur = 0;
                 }
 
                 ctx.fillRect(
@@ -748,13 +670,7 @@
                 );
             }
 
-            ctx.shadowBlur = 0;
-        }
-
-        function drawFood() {
             ctx.fillStyle = colors.food;
-            ctx.shadowBlur = 3;
-            ctx.shadowColor = colors.food;
 
             ctx.beginPath();
             ctx.arc(
@@ -766,10 +682,6 @@
             );
             ctx.fill();
 
-            ctx.shadowBlur = 0;
-        }
-
-        function drawOverlayText() {
             if (!gameStarted && gameRunning) {
                 ctx.fillStyle = 'rgba(0, 255, 255, 0.85)';
                 ctx.font = 'bold 28px Courier New';
@@ -798,7 +710,7 @@
         }
 
         function endGame() {
-            clearGameLoop();
+            clearGameTimer();
 
             gameRunning = false;
             gameStarted = false;
@@ -816,8 +728,6 @@
             document.getElementById('philosophyQuote').textContent = getRandomQuote();
 
             gameOverScreen.classList.add('active');
-
-            markDirty();
         }
 
         resizeCanvas();
