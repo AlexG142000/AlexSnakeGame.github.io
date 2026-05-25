@@ -167,16 +167,16 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 24px;
+            gap: 20px;
             text-align: center;
             border: 4px solid #00ff00;
-            padding: 40px;
+            padding: 36px;
             background: rgba(0, 0, 0, 0.98);
             box-shadow: 0 0 30px #00ff00, inset 0 0 20px rgba(0, 255, 0, 0.1);
         }
 
         .game-over-content h2 {
-            font-size: clamp(2.5rem, 6vw, 5.5rem);
+            font-size: clamp(2.2rem, 5vw, 5rem);
             color: #00ff00;
             text-shadow: 0 0 20px #00ff00;
             letter-spacing: 4px;
@@ -203,14 +203,17 @@
         .philosophy-quote {
             width: 90%;
             max-width: 950px;
-            font-size: clamp(2rem, 4.2vw, 4.5rem);
+            font-size: clamp(1rem, 2.2vw, 2.2rem);
             color: #00ffff;
             font-style: italic;
-            padding: 30px;
+            padding: 22px;
             border-left: 5px solid #00ffff;
             background: rgba(0, 255, 255, 0.12);
-            line-height: 1.25;
-            text-shadow: 0 0 14px #00ffff;
+            line-height: 1.4;
+            text-shadow: 0 0 10px #00ffff;
+            overflow-wrap: break-word;
+            max-height: 40vh;
+            overflow-y: auto;
         }
 
         @media (max-width: 900px) {
@@ -247,15 +250,16 @@
 
             .philosophy-quote {
                 width: 95%;
-                font-size: clamp(1.5rem, 5vw, 2.8rem);
-                padding: 22px;
+                font-size: clamp(0.9rem, 3.8vw, 1.4rem);
+                padding: 18px;
+                max-height: 34vh;
+                overflow-y: auto;
             }
         }
     </style>
 </head>
 
 <body>
-
     <audio id="moveSFX" src="move.mp3" preload="auto"></audio>
     <audio id="eatSFX" src="eat.mp3" preload="auto"></audio>
     <audio id="gameOverSFX" src="gameover.mp3" preload="auto"></audio>
@@ -320,12 +324,11 @@
         let gameRunning = false;
         let gamePaused = false;
         let gameStarted = false;
+        let loopTimer = null;
 
         let highScore = Number(localStorage.getItem('snakeHighScore')) || 0;
 
-        let gameSpeed = 100;
-        let lastMoveTime = 0;
-
+        let gameSpeed = 110;
         let sfxEnabled = true;
 
         const philosophyQuotes = [
@@ -363,8 +366,7 @@
             snake: '#00ff00',
             snakeHead: '#ffff00',
             food: '#ff00ff',
-            background: '#1a1a1a',
-            grid: '#003300'
+            background: '#1a1a1a'
         };
 
         highScoreDisplay.textContent = highScore;
@@ -387,9 +389,9 @@
         window.addEventListener('resize', resizeCanvas);
 
         function setSFXVolumes() {
-            moveSFX.volume = 0.35;
-            eatSFX.volume = 0.55;
-            gameOverSFX.volume = 0.65;
+            moveSFX.volume = 0.18;
+            eatSFX.volume = 0.45;
+            gameOverSFX.volume = 0.55;
         }
 
         setSFXVolumes();
@@ -428,19 +430,19 @@
         function handleKeyPress(e) {
             const key = e.key.toUpperCase();
 
-            if (!gameStarted && gameRunning) {
-                if (
-                    key === 'ARROWUP' ||
-                    key === 'W' ||
-                    key === 'ARROWDOWN' ||
-                    key === 'S' ||
-                    key === 'ARROWLEFT' ||
-                    key === 'A' ||
-                    key === 'ARROWRIGHT' ||
-                    key === 'D'
-                ) {
-                    gameStarted = true;
-                }
+            const isDirectionKey =
+                key === 'ARROWUP' ||
+                key === 'W' ||
+                key === 'ARROWDOWN' ||
+                key === 'S' ||
+                key === 'ARROWLEFT' ||
+                key === 'A' ||
+                key === 'ARROWRIGHT' ||
+                key === 'D';
+
+            if (!gameStarted && gameRunning && isDirectionKey) {
+                gameStarted = true;
+                scheduleNextLoop();
             }
 
             switch (key) {
@@ -482,6 +484,12 @@
         function togglePause() {
             if (gameRunning) {
                 gamePaused = !gamePaused;
+
+                if (!gamePaused && gameStarted) {
+                    scheduleNextLoop();
+                }
+
+                draw();
             }
         }
 
@@ -489,7 +497,35 @@
             return philosophyQuotes[Math.floor(Math.random() * philosophyQuotes.length)];
         }
 
+        function clearGameLoop() {
+            if (loopTimer) {
+                clearTimeout(loopTimer);
+                loopTimer = null;
+            }
+        }
+
+        function scheduleNextLoop() {
+            clearGameLoop();
+
+            if (!gameRunning || !gameStarted || gamePaused) {
+                return;
+            }
+
+            loopTimer = setTimeout(gameLoop, gameSpeed);
+        }
+
+        function gameLoop() {
+            if (!gameRunning || !gameStarted || gamePaused) {
+                return;
+            }
+
+            update();
+            draw();
+            scheduleNextLoop();
+        }
+
         async function startGame() {
+            clearGameLoop();
 
             snake = [{
                 x: Math.floor(tileCountX / 2),
@@ -500,25 +536,22 @@
             nextDirection = { x: 1, y: 0 };
 
             score = 0;
-
-            gameSpeed = 100;
+            gameSpeed = 110;
 
             generateFood();
             updateDisplay();
 
             gameRunning = true;
             gamePaused = false;
-
             gameStarted = false;
 
             gameOverScreen.classList.remove('active');
 
-            lastMoveTime = Date.now();
-
-            gameLoop();
+            draw();
         }
 
         async function resetGame() {
+            clearGameLoop();
 
             snake = [{
                 x: Math.floor(tileCountX / 2),
@@ -529,8 +562,7 @@
             nextDirection = { x: 1, y: 0 };
 
             score = 0;
-
-            gameSpeed = 100;
+            gameSpeed = 110;
 
             gamePaused = false;
             gameRunning = false;
@@ -561,22 +593,6 @@
             food = newFood;
         }
 
-        function gameLoop() {
-            const now = Date.now();
-            const deltaTime = now - lastMoveTime;
-
-            if (gameRunning && gameStarted && !gamePaused && deltaTime > gameSpeed) {
-                update();
-                lastMoveTime = now;
-            }
-
-            draw();
-
-            if (gameRunning) {
-                requestAnimationFrame(gameLoop);
-            }
-        }
-
         function update() {
             direction = nextDirection;
 
@@ -602,20 +618,17 @@
 
             snake.unshift(head);
 
-            playMoveSound();
-
             if (head.x === food.x && head.y === food.y) {
-
                 score += 1;
 
                 playCrunchSound();
 
-                gameSpeed = Math.max(35, gameSpeed * 0.90);
+                gameSpeed = Math.max(55, gameSpeed * 0.92);
 
                 generateFood();
-
             } else {
                 snake.pop();
+                playMoveSound();
             }
 
             updateDisplay();
@@ -627,36 +640,17 @@
         }
 
         function draw() {
-
             ctx.fillStyle = colors.background;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.strokeStyle = colors.grid;
-            ctx.lineWidth = 0.5;
-
-            for (let x = 0; x <= tileCountX; x++) {
-                ctx.beginPath();
-                ctx.moveTo(x * gridSize, 0);
-                ctx.lineTo(x * gridSize, canvas.height);
-                ctx.stroke();
-            }
-
-            for (let y = 0; y <= tileCountY; y++) {
-                ctx.beginPath();
-                ctx.moveTo(0, y * gridSize);
-                ctx.lineTo(canvas.width, y * gridSize);
-                ctx.stroke();
-            }
-
             snake.forEach((segment, index) => {
-
                 if (index === 0) {
                     ctx.fillStyle = colors.snakeHead;
-                    ctx.shadowBlur = 10;
+                    ctx.shadowBlur = 4;
                     ctx.shadowColor = colors.snakeHead;
                 } else {
                     ctx.fillStyle = colors.snake;
-                    ctx.shadowBlur = 5;
+                    ctx.shadowBlur = 2;
                     ctx.shadowColor = colors.snake;
                 }
 
@@ -671,11 +665,10 @@
             ctx.shadowBlur = 0;
 
             ctx.fillStyle = colors.food;
-            ctx.shadowBlur = 10;
+            ctx.shadowBlur = 4;
             ctx.shadowColor = colors.food;
 
             ctx.beginPath();
-
             ctx.arc(
                 food.x * gridSize + gridSize / 2,
                 food.y * gridSize + gridSize / 2,
@@ -683,13 +676,11 @@
                 0,
                 Math.PI * 2
             );
-
             ctx.fill();
 
             ctx.shadowBlur = 0;
 
             if (!gameStarted && gameRunning) {
-
                 ctx.fillStyle = 'rgba(0, 255, 255, 0.85)';
                 ctx.font = 'bold 28px Courier New';
                 ctx.textAlign = 'center';
@@ -703,7 +694,6 @@
             }
 
             if (gamePaused) {
-
                 ctx.fillStyle = 'rgba(255, 0, 255, 0.75)';
                 ctx.font = 'bold 42px Courier New';
                 ctx.textAlign = 'center';
@@ -718,8 +708,10 @@
         }
 
         function endGame() {
+            clearGameLoop();
 
             gameRunning = false;
+            gameStarted = false;
 
             playExplosionSound();
 
@@ -738,7 +730,6 @@
 
         resizeCanvas();
         resetGame();
-
     </script>
 </body>
 </html>
