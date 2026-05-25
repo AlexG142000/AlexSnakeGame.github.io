@@ -331,6 +331,9 @@
         let gameSpeed = 110;
         let sfxEnabled = true;
 
+        let gridCanvas = document.createElement('canvas');
+        let gridCtx = gridCanvas.getContext('2d');
+
         const philosophyQuotes = [
             '"BOOM TARAT-TARAT." — WILLIE REVILLAME',
             '"PAG HINDI AKO PAPASOK, HINAHANAP NIYO AKO, DIBA? NGAYON PAPASOK AKO, TATANUNGIN N\'YO AKO BAKIT AKO PUMASOK?" — BATO DELA ROSA',
@@ -366,7 +369,8 @@
             snake: '#00ff00',
             snakeHead: '#ffff00',
             food: '#ff00ff',
-            background: '#1a1a1a'
+            background: '#1a1a1a',
+            grid: '#003300'
         };
 
         highScoreDisplay.textContent = highScore;
@@ -383,10 +387,36 @@
             tileCountX = canvas.width / gridSize;
             tileCountY = canvas.height / gridSize;
 
+            buildGridCanvas();
             draw();
         }
 
         window.addEventListener('resize', resizeCanvas);
+
+        function buildGridCanvas() {
+            gridCanvas.width = canvas.width;
+            gridCanvas.height = canvas.height;
+
+            gridCtx.fillStyle = colors.background;
+            gridCtx.fillRect(0, 0, gridCanvas.width, gridCanvas.height);
+
+            gridCtx.strokeStyle = colors.grid;
+            gridCtx.lineWidth = 0.5;
+
+            for (let x = 0; x <= tileCountX; x++) {
+                gridCtx.beginPath();
+                gridCtx.moveTo(x * gridSize, 0);
+                gridCtx.lineTo(x * gridSize, gridCanvas.height);
+                gridCtx.stroke();
+            }
+
+            for (let y = 0; y <= tileCountY; y++) {
+                gridCtx.beginPath();
+                gridCtx.moveTo(0, y * gridSize);
+                gridCtx.lineTo(gridCanvas.width, y * gridSize);
+                gridCtx.stroke();
+            }
+        }
 
         function setSFXVolumes() {
             moveSFX.volume = 0.18;
@@ -640,8 +670,7 @@
         }
 
         function draw() {
-            ctx.fillStyle = colors.background;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(gridCanvas, 0, 0);
 
             snake.forEach((segment, index) => {
                 if (index === 0) {
