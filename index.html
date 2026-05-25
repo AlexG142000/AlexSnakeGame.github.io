@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>90s Snake Game</title>
+    <title>The Snake That Seduced Eve</title>
+
     <style>
         * {
             margin: 0;
@@ -13,7 +14,7 @@
 
         body {
             width: 100vw;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -24,10 +25,13 @@
         }
 
         .container {
+            width: 80vw;
+            max-width: 1200px;
+            height: 95vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
             background: #000000;
             border: 4px solid #00ff00;
             box-shadow: 0 0 20px #00ff00, inset 0 0 20px rgba(0, 255, 0, 0.1);
@@ -36,49 +40,65 @@
         }
 
         h1 {
-            font-size: 2.5em;
+            font-size: clamp(1.8rem, 4vw, 3.2rem);
+            text-align: center;
             text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
             letter-spacing: 3px;
             animation: flicker 0.15s infinite;
+            line-height: 1.1;
         }
 
         @keyframes flicker {
-            0%, 100% { text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00; }
-            50% { text-shadow: 0 0 5px #00ff00; }
+            0%, 100% {
+                text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+            }
+
+            50% {
+                text-shadow: 0 0 5px #00ff00;
+            }
         }
 
         .scorecard {
+            width: 70%;
             display: flex;
-            gap: 30px;
-            font-size: 1.2em;
+            justify-content: center;
+            gap: 24px;
+            font-size: 1.1em;
+        }
+
+        .score-item {
+            flex: 1;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             border: 2px solid #ff00ff;
-            padding: 15px 25px;
+            padding: 14px 18px;
             background: rgba(255, 0, 255, 0.1);
             box-shadow: 0 0 10px #ff00ff;
         }
 
-        .score-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
         .score-label {
-            font-size: 0.8em;
+            font-size: clamp(0.65rem, 1.1vw, 0.95rem);
             color: #00ffff;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 2px;
+            text-align: center;
+            white-space: nowrap;
         }
 
         .score-value {
-            font-size: 1.5em;
+            font-size: clamp(1.3rem, 2.4vw, 2rem);
             color: #ffff00;
             font-weight: bold;
             text-shadow: 0 0 5px #ffff00;
         }
 
         #gameCanvas {
+            width: 80%;
+            flex: 1;
+            min-height: 0;
             border: 3px solid #00ff00;
             background: #1a1a1a;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
@@ -86,22 +106,19 @@
             display: block;
         }
 
-        .controls {
-            text-align: center;
-            font-size: 0.9em;
-            color: #ff00ff;
-            text-shadow: 0 0 5px #ff00ff;
-        }
-
         .button-group {
             display: flex;
-            gap: 15px;
-            margin-top: 15px;
+            gap: 24px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 6px;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
         }
 
         button {
-            padding: 10px 25px;
-            font-size: 1em;
+            padding: 12px 32px;
+            font-size: clamp(0.85rem, 1.2vw, 1.1rem);
             font-family: 'Courier New', monospace;
             background: linear-gradient(135deg, #ff00ff, #00ffff);
             color: #000000;
@@ -136,7 +153,6 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            gap: 20px;
         }
 
         .game-over-screen.active {
@@ -144,142 +160,176 @@
         }
 
         .game-over-content {
+            width: 80vw;
+            max-width: 1200px;
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
             text-align: center;
-            border: 4px solid #ff0000;
+            border: 4px solid #00ff00;
             padding: 40px;
-            background: rgba(255, 0, 0, 0.1);
-            box-shadow: 0 0 30px #ff0000;
+            background: rgba(0, 0, 0, 0.98);
+            box-shadow: 0 0 30px #00ff00, inset 0 0 20px rgba(0, 255, 0, 0.1);
         }
 
         .game-over-content h2 {
-            font-size: 3em;
-            color: #ff0000;
-            margin-bottom: 20px;
-            text-shadow: 0 0 20px #ff0000;
+            font-size: clamp(2.5rem, 6vw, 5.5rem);
+            color: #00ff00;
+            text-shadow: 0 0 20px #00ff00;
+            letter-spacing: 4px;
+            line-height: 1.1;
             animation: pulse 0.5s infinite;
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            0%, 100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.04);
+            }
         }
 
-        .game-over-content p {
-            font-size: 1.5em;
+        .final-score {
+            font-size: clamp(1rem, 2vw, 1.8rem);
             color: #ffff00;
-            margin-bottom: 10px;
+            text-shadow: 0 0 8px #ffff00;
         }
 
         .philosophy-quote {
-            font-size: 2.2em;
+            width: 90%;
+            max-width: 950px;
+            font-size: clamp(2rem, 4.2vw, 4.5rem);
             color: #00ffff;
             font-style: italic;
-            margin-top: 20px;
-            padding: 25px;
+            padding: 30px;
             border-left: 5px solid #00ffff;
-            background: rgba(0, 255, 255, 0.2);
-            max-width: 600px;
-            line-height: 1.4;
-            text-shadow: 0 0 10px #00ffff;
+            background: rgba(0, 255, 255, 0.12);
+            line-height: 1.25;
+            text-shadow: 0 0 14px #00ffff;
         }
 
-        .share-section {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 2px solid #00ffff;
-        }
+        @media (max-width: 900px) {
+            body {
+                overflow-y: auto;
+            }
 
-        .share-button {
-            padding: 8px 20px;
-            font-size: 0.9em;
-            font-family: 'Courier New', monospace;
-            background: rgba(0, 255, 0, 0.2);
-            color: #00ff00;
-            border: 2px solid #00ff00;
-            cursor: pointer;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 0 5px #00ff00;
-            transition: all 0.3s;
-            margin-top: 10px;
-        }
+            .container {
+                width: 95vw;
+                height: 95vh;
+                padding: 14px;
+            }
 
-        .share-button:hover {
-            box-shadow: 0 0 10px #00ff00;
-            transform: scale(1.05);
+            .scorecard {
+                width: 90%;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .score-item {
+                min-width: unset;
+                width: 100%;
+            }
+
+            #gameCanvas {
+                width: 95%;
+            }
+
+            .game-over-content {
+                width: 95vw;
+                min-height: 85vh;
+                padding: 24px;
+            }
         }
     </style>
 </head>
+
 <body>
+    <!-- Put these files in the same folder as this HTML file:
+        move.mp3
+        eat.mp3
+        gameover.mp3
+    -->
+    <audio id="moveSFX" src="move.mp3" preload="auto"></audio>
+    <audio id="eatSFX" src="eat.mp3" preload="auto"></audio>
+    <audio id="gameOverSFX" src="gameover.mp3" preload="auto"></audio>
+
     <div class="container">
-        <h1>SNAKE</h1>
+        <h1>THE SNAKE THAT SEDUCED EVE</h1>
+
         <div class="scorecard">
             <div class="score-item">
-                <div class="score-label">Score</div>
+                <div class="score-label">Forbidden Fruits Eaten</div>
                 <div class="score-value" id="score">0</div>
             </div>
+
             <div class="score-item">
-                <div class="score-label">Level</div>
-                <div class="score-value" id="level">1</div>
-            </div>
-            <div class="score-item">
-                <div class="score-label">High Score</div>
+                <div class="score-label">Most Original Sins Committed</div>
                 <div class="score-value" id="highScore">0</div>
             </div>
         </div>
-        <canvas id="gameCanvas" width="400" height="400"></canvas>
-        <div class="controls">
-            <p>⬆️ ⬅️ ⬇️ ➡️ or WASD to move</p>
-            <p>SPACEBAR to pause/resume</p>
-            <div class="button-group">
-                <button onclick="startGame()">START GAME</button>
-                <button onclick="resetGame()">RESET</button>
-            </div>
-            <div class="share-section">
-                <p style="font-size: 0.8em; margin-bottom: 10px;">Share your score:</p>
-                <button class="share-button" onclick="shareScore()">📋 COPY SCORE LINK</button>
-                <p style="font-size: 0.8em; margin-top: 15px; margin-bottom: 10px;">Share the game:</p>
-                <button class="share-button" onclick="shareGameURL()">🎮 COPY GAME URL</button>
-            </div>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <div class="button-group">
+            <button onclick="startGame()">EAT NOW</button>
+            <button onclick="resetGame()">RAPTURE</button>
         </div>
     </div>
 
     <div class="game-over-screen" id="gameOverScreen">
         <div class="game-over-content">
-            <h2>GAME OVER!</h2>
-            <p>FINAL SCORE: <span id="finalScore">0</span></p>
+            <h2>GOD CASTS YOU OUT OF EDEN</h2>
+            <p class="final-score">FORBIDDEN FRUITS EATEN: <span id="finalScore">0</span></p>
             <div class="philosophy-quote" id="philosophyQuote"></div>
-            <button onclick="resetGame()" style="margin-top: 20px;">PLAY AGAIN</button>
+            <button onclick="startGame()">START A NEW EDEN</button>
         </div>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+
         const scoreDisplay = document.getElementById('score');
-        const levelDisplay = document.getElementById('level');
         const highScoreDisplay = document.getElementById('highScore');
         const gameOverScreen = document.getElementById('gameOverScreen');
 
-        // Game variables
+        const moveSFX = document.getElementById('moveSFX');
+        const eatSFX = document.getElementById('eatSFX');
+        const gameOverSFX = document.getElementById('gameOverSFX');
+
         const gridSize = 20;
-        const tileCount = canvas.width / gridSize;
-        let snake = [{x: 10, y: 10}];
-        let food = {x: 15, y: 15};
-        let direction = {x: 1, y: 0};
-        let nextDirection = {x: 1, y: 0};
+
+        let tileCountX = 40;
+        let tileCountY = 25;
+
+        let snake = [{ x: 10, y: 10 }];
+        let food = { x: 15, y: 15 };
+
+        let direction = { x: 1, y: 0 };
+        let nextDirection = { x: 1, y: 0 };
+
         let score = 0;
-        let level = 1;
         let gameRunning = false;
         let gamePaused = false;
-        let highScore = localStorage.getItem('snakeHighScore') || 0;
+
+        let highScore = Number(localStorage.getItem('snakeHighScore')) || 0;
+
         let gameSpeed = 100;
         let lastMoveTime = 0;
 
-        // Philosophy quotes for game over
+        let sfxEnabled = true;
+
         const philosophyQuotes = [
             "Boom tarat-tarat. — Willie Revillame",
+            "In the day that you eat from it you will certainly die. — Genesis 2:17",
+            "Sin is crouching at your door; it desires to have you, but you must rule over it. — Genesis 4:7",
+            "The serpent deceived me, and I ate. — Genesis 3:13",
+            "Dust you are and to dust you will return. — Genesis 3:19",
             "Existence precedes essence. — Jean-Paul Sartre",
             "One must still have chaos in oneself to give birth to a dancing star. — Friedrich Nietzsche",
             "The unexamined life is not worth living. — Socrates",
@@ -296,7 +346,6 @@
             "He who has a why to live can bear almost any how. — Friedrich Nietzsche"
         ];
 
-        // 90s color palette
         const colors = {
             snake: '#00ff00',
             snakeHead: '#ffff00',
@@ -305,110 +354,138 @@
             grid: '#003300'
         };
 
-        // Initialize high score display
         highScoreDisplay.textContent = highScore;
 
-        // Audio context for sound effects
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
 
-        function playExplosionSound() {
-            try {
-                const now = audioContext.currentTime;
-                
-                // Create oscillator for explosion sweep
-                const osc = audioContext.createOscillator();
-                const gain = audioContext.createGain();
-                osc.connect(gain);
-                gain.connect(audioContext.destination);
-                
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(30, now + 0.3);
-                osc.type = 'square';
-                
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                
-                osc.start(now);
-                osc.stop(now + 0.3);
-                
-                // Add noise
-                const bufferSize = audioContext.sampleRate * 0.3;
-                const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-                const noiseData = noiseBuffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) {
-                    noiseData[i] = Math.random() * 2 - 1;
-                }
-                
-                const noiseSource = audioContext.createBufferSource();
-                noiseSource.buffer = noiseBuffer;
-                const noiseGain = audioContext.createGain();
-                noiseSource.connect(noiseGain);
-                noiseGain.connect(audioContext.destination);
-                
-                noiseGain.gain.setValueAtTime(0.15, now);
-                noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                
-                noiseSource.start(now);
-                noiseSource.stop(now + 0.3);
-            } catch (e) {
-                console.log('Sound effect unavailable');
+            const width = Math.floor(rect.width / gridSize) * gridSize;
+            const height = Math.floor(rect.height / gridSize) * gridSize;
+
+            canvas.width = Math.max(width, 400);
+            canvas.height = Math.max(height, 300);
+
+            tileCountX = canvas.width / gridSize;
+            tileCountY = canvas.height / gridSize;
+
+            if (snake.some(segment => segment.x >= tileCountX || segment.y >= tileCountY)) {
+                resetGame();
             }
+
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function setSFXVolumes() {
+            moveSFX.volume = 0.35;
+            eatSFX.volume = 0.55;
+            gameOverSFX.volume = 0.65;
+        }
+
+        setSFXVolumes();
+
+        function unlockOneSound(sound) {
+            return new Promise((resolve) => {
+                sound.muted = true;
+                sound.currentTime = 0;
+
+                const playPromise = sound.play();
+
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => {
+                            sound.pause();
+                            sound.currentTime = 0;
+                            sound.muted = false;
+                            resolve(true);
+                        })
+                        .catch(() => {
+                            sound.muted = false;
+                            resolve(false);
+                        });
+                } else {
+                    sound.muted = false;
+                    resolve(false);
+                }
+            });
+        }
+
+        async function unlockAllSounds() {
+            if (!sfxEnabled) return false;
+
+            setSFXVolumes();
+
+            await Promise.all([
+                unlockOneSound(moveSFX),
+                unlockOneSound(eatSFX),
+                unlockOneSound(gameOverSFX)
+            ]);
+
+            return true;
+        }
+
+        function playSound(sound) {
+            if (!sfxEnabled) return;
+
+            try {
+                sound.pause();
+                sound.currentTime = 0;
+
+                const playPromise = sound.play();
+
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {});
+                }
+            } catch (error) {
+                console.warn('Sound playback failed:', error);
+            }
+        }
+
+        function playMoveSound() {
+            playSound(moveSFX);
         }
 
         function playCrunchSound() {
-            try {
-                const now = audioContext.currentTime;
-                
-                // Create crunch with multiple frequencies
-                const osc1 = audioContext.createOscillator();
-                const osc2 = audioContext.createOscillator();
-                const gain = audioContext.createGain();
-                
-                osc1.connect(gain);
-                osc2.connect(gain);
-                gain.connect(audioContext.destination);
-                
-                osc1.frequency.setValueAtTime(200, now);
-                osc1.frequency.exponentialRampToValueAtTime(80, now + 0.15);
-                osc1.type = 'triangle';
-                
-                osc2.frequency.setValueAtTime(300, now);
-                osc2.frequency.exponentialRampToValueAtTime(120, now + 0.15);
-                osc2.type = 'square';
-                
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                
-                osc1.start(now);
-                osc2.start(now);
-                osc1.stop(now + 0.15);
-                osc2.stop(now + 0.15);
-            } catch (e) {
-                console.log('Sound effect unavailable');
-            }
+            playSound(eatSFX);
         }
 
-        // Event listeners
+        function playExplosionSound() {
+            playSound(gameOverSFX);
+        }
+
         document.addEventListener('keydown', handleKeyPress);
 
         function handleKeyPress(e) {
-            switch(e.key.toUpperCase()) {
+            switch (e.key.toUpperCase()) {
                 case 'ARROWUP':
                 case 'W':
-                    if (direction.y === 0) nextDirection = {x: 0, y: -1};
+                    if (direction.y === 0) {
+                        nextDirection = { x: 0, y: -1 };
+                    }
                     break;
+
                 case 'ARROWDOWN':
                 case 'S':
-                    if (direction.y === 0) nextDirection = {x: 0, y: 1};
+                    if (direction.y === 0) {
+                        nextDirection = { x: 0, y: 1 };
+                    }
                     break;
+
                 case 'ARROWLEFT':
                 case 'A':
-                    if (direction.x === 0) nextDirection = {x: -1, y: 0};
+                    if (direction.x === 0) {
+                        nextDirection = { x: -1, y: 0 };
+                    }
                     break;
+
                 case 'ARROWRIGHT':
                 case 'D':
-                    if (direction.x === 0) nextDirection = {x: 1, y: 0};
+                    if (direction.x === 0) {
+                        nextDirection = { x: 1, y: 0 };
+                    }
                     break;
+
                 case ' ':
                     e.preventDefault();
                     togglePause();
@@ -426,78 +503,71 @@
             return philosophyQuotes[Math.floor(Math.random() * philosophyQuotes.length)];
         }
 
-        function shareScore() {
-            const scoreData = btoa(JSON.stringify({
-                score: score,
-                level: level,
-                gameMode: gameMode,
-                highScore: highScore,
-                timestamp: new Date().toISOString()
-            }));
-            const shareUrl = window.location.origin + window.location.pathname + '?challenge=' + scoreData;
-            
-            navigator.clipboard.writeText(shareUrl).then(() => {
-                alert('Score link copied to clipboard!\nYou scored ' + score + ' points on level ' + level + '!');
-            }).catch(() => {
-                prompt('Copy this link to share your score:', shareUrl);
-            });
-        }
+        async function startGame() {
+            await unlockAllSounds();
 
-        function shareGameURL() {
-            const gameUrl = window.location.origin + window.location.pathname;
-            
-            navigator.clipboard.writeText(gameUrl).then(() => {
-                alert('Game URL copied to clipboard!\nShare this link with your friends to play the game!');
-            }).catch(() => {
-                prompt('Copy this link to share the game:', gameUrl);
-            });
-        }
+            snake = [{
+                x: Math.floor(tileCountX / 2),
+                y: Math.floor(tileCountY / 2)
+            }];
 
-        function startGame() {
-            if (!gameRunning) {
-                // Reset game state
-                snake = [{x: 10, y: 10}];
-                direction = {x: 1, y: 0};
-                nextDirection = {x: 1, y: 0};
-                score = 0;
-                level = 1;
-                gameSpeed = 100;
-                generateFood();
-                updateDisplay();
-                
-                gameRunning = true;
-                gamePaused = false;
-                gameOverScreen.classList.remove('active');
-                lastMoveTime = Date.now();
-                gameLoop();
-            }
-        }
+            direction = { x: 1, y: 0 };
+            nextDirection = { x: 1, y: 0 };
 
-        function resetGame() {
-            snake = [{x: 10, y: 10}];
-            direction = {x: 1, y: 0};
-            nextDirection = {x: 1, y: 0};
             score = 0;
-            level = 1;
             gameSpeed = 100;
+
+            generateFood();
+            updateDisplay();
+
+            gameRunning = true;
+            gamePaused = false;
+
+            gameOverScreen.classList.remove('active');
+
+            lastMoveTime = Date.now();
+            gameLoop();
+        }
+
+        async function resetGame() {
+            await unlockAllSounds();
+
+            snake = [{
+                x: Math.floor(tileCountX / 2),
+                y: Math.floor(tileCountY / 2)
+            }];
+
+            direction = { x: 1, y: 0 };
+            nextDirection = { x: 1, y: 0 };
+
+            score = 0;
+            gameSpeed = 100;
+
             gamePaused = false;
             gameRunning = false;
+
             generateFood();
             updateDisplay();
             draw();
+
             gameOverScreen.classList.remove('active');
         }
 
         function generateFood() {
             let newFood;
             let validPosition = false;
+
             while (!validPosition) {
                 newFood = {
-                    x: Math.floor(Math.random() * tileCount),
-                    y: Math.floor(Math.random() * tileCount)
+                    x: Math.floor(Math.random() * tileCountX),
+                    y: Math.floor(Math.random() * tileCountY)
                 };
-                validPosition = !snake.some(segment => segment.x === newFood.x && segment.y === newFood.y);
+
+                validPosition = !snake.some(segment => {
+                    return segment.x === newFood.x && segment.y === newFood.y;
+                });
             }
+
             food = newFood;
         }
 
@@ -523,20 +593,22 @@
 
         function updateSinglePlayer() {
             direction = nextDirection;
-            
-            // Create new head
+
             const head = {
                 x: snake[0].x + direction.x,
                 y: snake[0].y + direction.y
             };
 
-            // Check wall collision
-            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+            if (
+                head.x < 0 ||
+                head.x >= tileCountX ||
+                head.y < 0 ||
+                head.y >= tileCountY
+            ) {
                 endGame();
                 return;
             }
 
-            // Check self collision
             if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
                 endGame();
                 return;
@@ -544,16 +616,15 @@
 
             snake.unshift(head);
 
-            // Check food collision
+            playMoveSound();
+
             if (head.x === food.x && head.y === food.y) {
-                score += 10;
+                score += 1;
+
                 playCrunchSound();
-                
-                // Level up every 50 points
-                const newLevel = Math.floor(score / 50) + 1;
-                if (newLevel > level) {
-                    level = newLevel;
-                    gameSpeed = Math.max(50, 100 - (level - 1) * 10);
+
+                if (score % 5 === 0) {
+                    gameSpeed = Math.max(50, gameSpeed - 6);
                 }
 
                 generateFood();
@@ -566,42 +637,41 @@
 
         function updateDisplay() {
             scoreDisplay.textContent = score;
-            levelDisplay.textContent = level;
+            highScoreDisplay.textContent = highScore;
         }
 
         function draw() {
-            // Clear canvas with background
             ctx.fillStyle = colors.background;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw grid
             ctx.strokeStyle = colors.grid;
             ctx.lineWidth = 0.5;
-            for (let i = 0; i <= tileCount; i++) {
-                ctx.beginPath();
-                ctx.moveTo(i * gridSize, 0);
-                ctx.lineTo(i * gridSize, canvas.height);
-                ctx.stroke();
 
+            for (let x = 0; x <= tileCountX; x++) {
                 ctx.beginPath();
-                ctx.moveTo(0, i * gridSize);
-                ctx.lineTo(canvas.width, i * gridSize);
+                ctx.moveTo(x * gridSize, 0);
+                ctx.lineTo(x * gridSize, canvas.height);
                 ctx.stroke();
             }
 
-            // Draw snake body
+            for (let y = 0; y <= tileCountY; y++) {
+                ctx.beginPath();
+                ctx.moveTo(0, y * gridSize);
+                ctx.lineTo(canvas.width, y * gridSize);
+                ctx.stroke();
+            }
+
             snake.forEach((segment, index) => {
                 if (index === 0) {
-                    // Head
                     ctx.fillStyle = colors.snakeHead;
                     ctx.shadowBlur = 10;
                     ctx.shadowColor = colors.snakeHead;
                 } else {
-                    // Body
                     ctx.fillStyle = colors.snake;
                     ctx.shadowBlur = 5;
                     ctx.shadowColor = colors.snake;
                 }
+
                 ctx.fillRect(
                     segment.x * gridSize + 1,
                     segment.y * gridSize + 1,
@@ -609,13 +679,13 @@
                     gridSize - 2
                 );
             });
-            
+
             ctx.shadowBlur = 0;
 
-            // Draw food
             ctx.fillStyle = colors.food;
             ctx.shadowBlur = 10;
             ctx.shadowColor = colors.food;
+
             ctx.beginPath();
             ctx.arc(
                 food.x * gridSize + gridSize / 2,
@@ -624,13 +694,13 @@
                 0,
                 Math.PI * 2
             );
+
             ctx.fill();
             ctx.shadowBlur = 0;
 
-            // Draw pause text
             if (gamePaused) {
-                ctx.fillStyle = 'rgba(255, 0, 255, 0.7)';
-                ctx.font = 'bold 30px Courier New';
+                ctx.fillStyle = 'rgba(255, 0, 255, 0.75)';
+                ctx.font = 'bold 42px Courier New';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
@@ -639,22 +709,24 @@
 
         function endGame() {
             gameRunning = false;
+
             playExplosionSound();
 
-            // Update high score
             if (score > highScore) {
                 highScore = score;
                 localStorage.setItem('snakeHighScore', highScore);
-                highScoreDisplay.textContent = highScore;
             }
+
+            updateDisplay();
 
             document.getElementById('finalScore').textContent = score;
             document.getElementById('philosophyQuote').textContent = '"' + getRandomQuote() + '"';
+
             gameOverScreen.classList.add('active');
         }
 
-        // Initial draw
-        draw();
+        resizeCanvas();
+        resetGame();
     </script>
 </body>
 </html>
