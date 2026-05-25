@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>90s Snake Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a0033 0%, #330066 50%, #1a0033 100%);
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            background: #000000;
+            border: 4px solid #00ff00;
+            box-shadow: 0 0 20px #00ff00, inset 0 0 20px rgba(0, 255, 0, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+            letter-spacing: 3px;
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00; }
+            50% { text-shadow: 0 0 5px #00ff00; }
+        }
+
+        .scorecard {
+            display: flex;
+            gap: 30px;
+            font-size: 1.2em;
+            border: 2px solid #ff00ff;
+            padding: 15px 25px;
+            background: rgba(255, 0, 255, 0.1);
+            box-shadow: 0 0 10px #ff00ff;
+        }
+
+        .score-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .score-label {
+            font-size: 0.8em;
+            color: #00ffff;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .score-value {
+            font-size: 1.5em;
+            color: #ffff00;
+            font-weight: bold;
+            text-shadow: 0 0 5px #ffff00;
+        }
+
+        #gameCanvas {
+            border: 3px solid #00ff00;
+            background: #1a1a1a;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            image-rendering: pixelated;
+            display: block;
+        }
+
+        .controls {
+            text-align: center;
+            font-size: 0.9em;
+            color: #ff00ff;
+            text-shadow: 0 0 5px #ff00ff;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px 25px;
+            font-size: 1em;
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #ff00ff, #00ffff);
+            color: #000000;
+            border: 2px solid #ffff00;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 0 10px #ff00ff;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #ffff00, #ff00ff);
+            box-shadow: 0 0 20px #ffff00;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .game-over-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .game-over-screen.active {
+            display: flex;
+        }
+
+        .game-over-content {
+            text-align: center;
+            border: 4px solid #ff0000;
+            padding: 40px;
+            background: rgba(255, 0, 0, 0.1);
+            box-shadow: 0 0 30px #ff0000;
+        }
+
+        .game-over-content h2 {
+            font-size: 3em;
+            color: #ff0000;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #ff0000;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .game-over-content p {
+            font-size: 1.5em;
+            color: #ffff00;
+            margin-bottom: 10px;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+
+        .mode-button {
+            padding: 8px 15px;
+            font-size: 0.9em;
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 5px #00ffff;
+            transition: all 0.3s;
+        }
+
+        .mode-button.active {
+            background: linear-gradient(135deg, #00ffff, #00ff00);
+            color: #000000;
+            box-shadow: 0 0 15px #00ffff;
+        }
+
+        .mode-button:hover {
+            box-shadow: 0 0 10px #00ffff;
+            transform: scale(1.05);
+        }
+
+        .two-player-display {
+            display: none;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .two-player-display.active {
+            display: flex;
+        }
+
+        .player-info {
+            border: 2px solid;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .player-info.player1 {
+            border-color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .player-info.player2 {
+            border-color: #ff00ff;
+            background: rgba(255, 0, 255, 0.1);
+        }
+
+        .player-info.player1.active {
+            box-shadow: 0 0 15px #00ff00;
+        }
+
+        .player-info.player2.active {
+            box-shadow: 0 0 15px #ff00ff;
+        }
+
+        .player-label {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .player-score {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .share-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #00ffff;
+        }
+
+        .share-button {
+            padding: 8px 20px;
+            font-size: 0.9em;
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+            border: 2px solid #00ff00;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 5px #00ff00;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .share-button:hover {
+            box-shadow: 0 0 10px #00ff00;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SNAKE</h1>
+        <div class="scorecard">
+            <div class="score-item">
+                <div class="score-label">Score</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+            <div class="score-item">
+                <div class="score-label">Level</div>
+                <div class="score-value" id="level">1</div>
+            </div>
+            <div class="score-item">
+                <div class="score-label">High Score</div>
+                <div class="score-value" id="highScore">0</div>
+            </div>
+        </div>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div class="two-player-display" id="twoPlayerDisplay">
+            <div class="player-info player1" id="player1Info">
+                <div class="player-label">Player 1 (Green)</div>
+                <div class="player-score" id="player1Score">0</div>
+            </div>
+            <div class="player-info player2" id="player2Info">
+                <div class="player-label">Player 2 (Magenta)</div>
+                <div class="player-score" id="player2Score">0</div>
+            </div>
+        </div>
+        <div class="mode-selector">
+            <button class="mode-button active" onclick="setGameMode('single')">Single Player</button>
+            <button class="mode-button" onclick="setGameMode('local2')">Local 2-Player</button>
+        </div>
+        <div class="controls">
+            <p>⬆️ ⬅️ ⬇️ ➡️ or WASD to move</p>
+            <p>SPACEBAR to pause/resume</p>
+            <div class="button-group">
+                <button onclick="startGame()">START GAME</button>
+                <button onclick="resetGame()">RESET</button>
+            </div>
+            <div class="share-section">
+                <p style="font-size: 0.8em; margin-bottom: 10px;">Share your score:</p>
+                <button class="share-button" onclick="shareScore()">📋 COPY SCORE LINK</button>
+                <p style="font-size: 0.8em; margin-top: 15px; margin-bottom: 10px;">Share the game:</p>
+                <button class="share-button" onclick="shareGameURL()">🎮 COPY GAME URL</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-over-screen" id="gameOverScreen">
+        <div class="game-over-content">
+            <h2>GAME OVER!</h2>
+            <p>FINAL SCORE: <span id="finalScore">0</span></p>
+            <button onclick="resetGame()" style="margin-top: 20px;">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level');
+        const highScoreDisplay = document.getElementById('highScore');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+
+        // Game variables
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+        let gameMode = 'single'; // 'single' or 'local2'
+        let snake = [{x: 10, y: 10}];
+        let snake2 = [{x: 15, y: 10}];
+        let food = {x: 15, y: 15};
+        let direction = {x: 1, y: 0};
+        let nextDirection = {x: 1, y: 0};
+        let direction2 = {x: -1, y: 0};
+        let nextDirection2 = {x: -1, y: 0};
+        let score = 0;
+        let score2 = 0;
+        let level = 1;
+        let gameRunning = false;
+        let gamePaused = false;
+        let highScore = localStorage.getItem('snakeHighScore') || 0;
+        let gameSpeed = 100;
+        let lastMoveTime = 0;
+
+        // 90s color palette
+        const colors = {
+            snake: '#00ff00',
+            snakeHead: '#ffff00',
+            food: '#ff00ff',
+            background: '#1a1a1a',
+            grid: '#003300'
+        };
+
+        // Initialize high score display
+        highScoreDisplay.textContent = highScore;
+
+        // Event listeners
+        document.addEventListener('keydown', handleKeyPress);
+
+        function handleKeyPress(e) {
+            switch(e.key.toUpperCase()) {
+                case 'ARROWUP':
+                case 'W':
+                    if (direction.y === 0) nextDirection = {x: 0, y: -1};
+                    break;
+                case 'ARROWDOWN':
+                case 'S':
+                    if (direction.y === 0) nextDirection = {x: 0, y: 1};
+                    break;
+                case 'ARROWLEFT':
+                case 'A':
+                    if (direction.x === 0) nextDirection = {x: -1, y: 0};
+                    break;
+                case 'ARROWRIGHT':
+                case 'D':
+                    if (direction.x === 0) nextDirection = {x: 1, y: 0};
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    togglePause();
+                    break;
+                // Player 2 controls (for local 2-player mode)
+                case 'I':
+                    if (gameMode === 'local2' && direction2.y === 0) nextDirection2 = {x: 0, y: -1};
+                    break;
+                case 'K':
+                    if (gameMode === 'local2' && direction2.y === 0) nextDirection2 = {x: 0, y: 1};
+                    break;
+                case 'J':
+                    if (gameMode === 'local2' && direction2.x === 0) nextDirection2 = {x: -1, y: 0};
+                    break;
+                case 'L':
+                    if (gameMode === 'local2' && direction2.x === 0) nextDirection2 = {x: 1, y: 0};
+                    break;
+            }
+        }
+
+        function togglePause() {
+            if (gameRunning) {
+                gamePaused = !gamePaused;
+            }
+        }
+
+        function setGameMode(mode) {
+            gameMode = mode;
+            const buttons = document.querySelectorAll('.mode-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            resetGame();
+            
+            const twoPlayerDisplay = document.getElementById('twoPlayerDisplay');
+            if (mode === 'local2') {
+                twoPlayerDisplay.classList.add('active');
+                document.querySelector('.controls p:first-child').textContent = 'Player 1: ⬆️ ⬅️ ⬇️ ➡️ or WASD | Player 2: I/J/K/L';
+            } else {
+                twoPlayerDisplay.classList.remove('active');
+                document.querySelector('.controls p:first-child').textContent = '⬆️ ⬅️ ⬇️ ➡️ or WASD to move';
+            }
+        }
+
+        function shareScore() {
+            const scoreData = btoa(JSON.stringify({
+                score: score,
+                level: level,
+                gameMode: gameMode,
+                highScore: highScore,
+                timestamp: new Date().toISOString()
+            }));
+            const shareUrl = window.location.origin + window.location.pathname + '?challenge=' + scoreData;
+            
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert('Score link copied to clipboard!\nYou scored ' + score + ' points on level ' + level + '!');
+            }).catch(() => {
+                prompt('Copy this link to share your score:', shareUrl);
+            });
+        }
+
+        function shareGameURL() {
+            const gameUrl = window.location.origin + window.location.pathname;
+            
+            navigator.clipboard.writeText(gameUrl).then(() => {
+                alert('Game URL copied to clipboard!\nShare this link with your friends to play the game!');
+            }).catch(() => {
+                prompt('Copy this link to share the game:', gameUrl);
+            });
+        }
+
+        function startGame() {
+            if (!gameRunning) {
+                // Reset game state
+                snake = [{x: 10, y: 10}];
+                snake2 = [{x: 15, y: 10}];
+                direction = {x: 1, y: 0};
+                nextDirection = {x: 1, y: 0};
+                direction2 = {x: -1, y: 0};
+                nextDirection2 = {x: -1, y: 0};
+                score = 0;
+                score2 = 0;
+                level = 1;
+                gameSpeed = 100;
+                generateFood();
+                updateDisplay();
+                
+                gameRunning = true;
+                gamePaused = false;
+                gameOverScreen.classList.remove('active');
+                lastMoveTime = Date.now();
+                gameLoop();
+            }
+        }
+
+        function resetGame() {
+            snake = [{x: 10, y: 10}];
+            snake2 = [{x: 15, y: 10}];
+            direction = {x: 1, y: 0};
+            nextDirection = {x: 1, y: 0};
+            direction2 = {x: -1, y: 0};
+            nextDirection2 = {x: -1, y: 0};
+            score = 0;
+            score2 = 0;
+            level = 1;
+            gameSpeed = 100;
+            gamePaused = false;
+            gameRunning = false;
+            generateFood();
+            updateDisplay();
+            draw();
+            gameOverScreen.classList.remove('active');
+        }
+
+        function generateFood() {
+            let newFood;
+            let validPosition = false;
+            while (!validPosition) {
+                newFood = {
+                    x: Math.floor(Math.random() * tileCount),
+                    y: Math.floor(Math.random() * tileCount)
+                };
+                validPosition = !snake.some(segment => segment.x === newFood.x && segment.y === newFood.y);
+            }
+            food = newFood;
+        }
+
+        function gameLoop() {
+            const now = Date.now();
+            const deltaTime = now - lastMoveTime;
+
+            if (!gamePaused && deltaTime > gameSpeed) {
+                update();
+                lastMoveTime = now;
+            }
+
+            draw();
+
+            if (gameRunning) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function update() {
+            if (gameMode === 'single') {
+                updateSinglePlayer();
+            } else if (gameMode === 'local2') {
+                updateTwoPlayer();
+            }
+        }
+
+        function updateSinglePlayer() {
+            direction = nextDirection;
+            
+            // Create new head
+            const head = {
+                x: snake[0].x + direction.x,
+                y: snake[0].y + direction.y
+            };
+
+            // Check wall collision
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                endGame();
+                return;
+            }
+
+            // Check self collision
+            if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                endGame();
+                return;
+            }
+
+            snake.unshift(head);
+
+            // Check food collision
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                
+                // Level up every 50 points
+                const newLevel = Math.floor(score / 50) + 1;
+                if (newLevel > level) {
+                    level = newLevel;
+                    gameSpeed = Math.max(50, 100 - (level - 1) * 10);
+                }
+
+                generateFood();
+            } else {
+                snake.pop();
+            }
+
+            updateDisplay();
+        }
+
+        function updateTwoPlayer() {
+            direction = nextDirection;
+            direction2 = nextDirection2;
+            
+            // Player 1 head
+            const head1 = {
+                x: snake[0].x + direction.x,
+                y: snake[0].y + direction.y
+            };
+
+            // Player 2 head
+            const head2 = {
+                x: snake2[0].x + direction2.x,
+                y: snake2[0].y + direction2.y
+            };
+
+            // Check wall collisions
+            let p1Dead = false;
+            let p2Dead = false;
+
+            if (head1.x < 0 || head1.x >= tileCount || head1.y < 0 || head1.y >= tileCount) {
+                p1Dead = true;
+            }
+
+            if (head2.x < 0 || head2.x >= tileCount || head2.y < 0 || head2.y >= tileCount) {
+                p2Dead = true;
+            }
+
+            // Check self collision
+            if (snake.some(segment => segment.x === head1.x && segment.y === head1.y)) {
+                p1Dead = true;
+            }
+
+            if (snake2.some(segment => segment.x === head2.x && segment.y === head2.y)) {
+                p2Dead = true;
+            }
+
+            // Check collision with other player
+            if (snake2.some(segment => segment.x === head1.x && segment.y === head1.y)) {
+                p1Dead = true;
+                score2 += 20;
+            }
+
+            if (snake.some(segment => segment.x === head2.x && segment.y === head2.y)) {
+                p2Dead = true;
+                score += 20;
+            }
+
+            // Check head-to-head collision
+            if (head1.x === head2.x && head1.y === head2.y) {
+                p1Dead = true;
+                p2Dead = true;
+            }
+
+            if (p1Dead || p2Dead) {
+                endGameTwoPlayer(p1Dead, p2Dead);
+                return;
+            }
+
+            snake.unshift(head1);
+            snake2.unshift(head2);
+
+            // Check food collision for player 1
+            if (head1.x === food.x && head1.y === food.y) {
+                score += 10;
+                generateFood();
+            } else {
+                snake.pop();
+            }
+
+            // Check food collision for player 2
+            if (head2.x === food.x && head2.y === food.y) {
+                score2 += 10;
+                generateFood();
+            } else {
+                snake2.pop();
+            }
+
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            scoreDisplay.textContent = score;
+            levelDisplay.textContent = level;
+            
+            if (gameMode === 'local2') {
+                document.getElementById('player1Score').textContent = score;
+                document.getElementById('player2Score').textContent = score2;
+            }
+        }
+
+        function draw() {
+            // Clear canvas with background
+            ctx.fillStyle = colors.background;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grid
+            ctx.strokeStyle = colors.grid;
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= tileCount; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * gridSize, 0);
+                ctx.lineTo(i * gridSize, canvas.height);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, i * gridSize);
+                ctx.lineTo(canvas.width, i * gridSize);
+                ctx.stroke();
+            }
+
+            // Draw snake body
+            snake.forEach((segment, index) => {
+                if (index === 0) {
+                    // Head
+                    ctx.fillStyle = colors.snakeHead;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = colors.snakeHead;
+                } else {
+                    // Body
+                    ctx.fillStyle = colors.snake;
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = colors.snake;
+                }
+                ctx.fillRect(
+                    segment.x * gridSize + 1,
+                    segment.y * gridSize + 1,
+                    gridSize - 2,
+                    gridSize - 2
+                );
+            });
+            
+            // Draw second snake in 2-player mode
+            if (gameMode === 'local2') {
+                snake2.forEach((segment, index) => {
+                    if (index === 0) {
+                        // Head
+                        ctx.fillStyle = colors.food;
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = colors.food;
+                    } else {
+                        // Body
+                        ctx.fillStyle = '#ff1493';
+                        ctx.shadowBlur = 5;
+                        ctx.shadowColor = '#ff1493';
+                    }
+                    ctx.fillRect(
+                        segment.x * gridSize + 1,
+                        segment.y * gridSize + 1,
+                        gridSize - 2,
+                        gridSize - 2
+                    );
+                });
+            }
+            
+            ctx.shadowBlur = 0;
+
+            // Draw food
+            ctx.fillStyle = colors.food;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = colors.food;
+            ctx.beginPath();
+            ctx.arc(
+                food.x * gridSize + gridSize / 2,
+                food.y * gridSize + gridSize / 2,
+                gridSize / 2 - 2,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Draw pause text
+            if (gamePaused) {
+                ctx.fillStyle = 'rgba(255, 0, 255, 0.7)';
+                ctx.font = 'bold 30px Courier New';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        function endGame() {
+            gameRunning = false;
+
+            // Update high score
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('snakeHighScore', highScore);
+                highScoreDisplay.textContent = highScore;
+            }
+
+            document.getElementById('finalScore').textContent = score;
+            gameOverScreen.classList.add('active');
+        }
+
+        function endGameTwoPlayer(p1Dead, p2Dead) {
+            gameRunning = false;
+            let message = '';
+            
+            if (p1Dead && p2Dead) {
+                message = "IT'S A TIE! Score: " + score + " - " + score2;
+            } else if (p1Dead) {
+                message = "PLAYER 2 WINS! Score: " + score2 + " - " + score;
+            } else if (p2Dead) {
+                message = "PLAYER 1 WINS! Score: " + score + " - " + score2;
+            }
+            
+            document.querySelector('.game-over-content h2').textContent = message;
+            document.getElementById('finalScore').textContent = 'P1: ' + score + ' | P2: ' + score2;
+            gameOverScreen.classList.add('active');
+        }
+
+        // Initial draw
+        draw();
+    </script>
+</body>
+</html>
