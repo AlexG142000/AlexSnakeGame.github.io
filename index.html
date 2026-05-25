@@ -167,16 +167,16 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 24px;
+            gap: 22px;
             text-align: center;
             border: 4px solid #00ff00;
-            padding: 40px;
+            padding: 36px;
             background: rgba(0, 0, 0, 0.98);
             box-shadow: 0 0 30px #00ff00, inset 0 0 20px rgba(0, 255, 0, 0.1);
         }
 
         .game-over-content h2 {
-            font-size: clamp(2.5rem, 6vw, 5.5rem);
+            font-size: clamp(2.2rem, 5vw, 5rem);
             color: #00ff00;
             text-shadow: 0 0 20px #00ff00;
             letter-spacing: 4px;
@@ -200,17 +200,39 @@
             text-shadow: 0 0 8px #ffff00;
         }
 
-        .philosophy-quote {
-            width: 90%;
-            max-width: 950px;
-            font-size: clamp(2rem, 4.2vw, 4.5rem);
-            color: #00ffff;
-            font-style: italic;
-            padding: 30px;
+        .quote-cloud {
+            width: 92%;
+            max-width: 1000px;
+            min-height: 360px;
+            position: relative;
+            padding: 28px;
             border-left: 5px solid #00ffff;
-            background: rgba(0, 255, 255, 0.12);
+            background: rgba(0, 255, 255, 0.08);
+            overflow: hidden;
+        }
+
+        .scattered-quote {
+            position: absolute;
+            max-width: 42%;
+            color: #00ffff;
+            font-size: clamp(1rem, 1.5vw, 1.8rem);
+            font-style: italic;
             line-height: 1.25;
-            text-shadow: 0 0 14px #00ffff;
+            text-shadow: 0 0 12px #00ffff;
+            opacity: 0.95;
+            text-align: left;
+        }
+
+        .scattered-quote.main-quote {
+            max-width: 78%;
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            font-size: clamp(1.8rem, 3.4vw, 4rem);
+            color: #ffff00;
+            text-shadow: 0 0 14px #ffff00;
+            z-index: 2;
+            text-align: center;
         }
 
         @media (max-width: 900px) {
@@ -242,7 +264,22 @@
             .game-over-content {
                 width: 95vw;
                 min-height: 85vh;
-                padding: 24px;
+                padding: 22px;
+            }
+
+            .quote-cloud {
+                width: 96%;
+                min-height: 420px;
+            }
+
+            .scattered-quote {
+                max-width: 48%;
+                font-size: clamp(0.8rem, 2.6vw, 1.2rem);
+            }
+
+            .scattered-quote.main-quote {
+                max-width: 88%;
+                font-size: clamp(1.4rem, 5vw, 2.4rem);
             }
         }
     </style>
@@ -285,7 +322,7 @@
         <div class="game-over-content">
             <h2>GOD CASTS YOU OUT OF EDEN</h2>
             <p class="final-score">FORBIDDEN FRUITS EATEN: <span id="finalScore">0</span></p>
-            <div class="philosophy-quote" id="philosophyQuote"></div>
+            <div class="quote-cloud" id="quoteCloud"></div>
             <button onclick="startGame()">START A NEW EDEN</button>
         </div>
     </div>
@@ -325,25 +362,49 @@
         let sfxEnabled = true;
 
         const philosophyQuotes = [
-            "Boom tarat-tarat. — Willie Revillame",
-            "In the day that you eat from it you will certainly die. — Genesis 2:17",
-            "Sin is crouching at your door; it desires to have you, but you must rule over it. — Genesis 4:7",
-            "The serpent deceived me, and I ate. — Genesis 3:13",
-            "Dust you are and to dust you will return. — Genesis 3:19",
-            "Existence precedes essence. — Jean-Paul Sartre",
-            "One must still have chaos in oneself to give birth to a dancing star. — Friedrich Nietzsche",
-            "The unexamined life is not worth living. — Socrates",
-            "Anxiety is the dizziness of freedom. — Søren Kierkegaard",
-            "Hell is other people. — Jean-Paul Sartre",
-            "Man is condemned to be free. — Jean-Paul Sartre",
-            "To live is to suffer, to survive is to find some meaning in the suffering. — Friedrich Nietzsche",
-            "The struggle itself toward the heights is enough to fill a man's heart. — Albert Camus",
-            "No man ever steps in the same river twice. — Heraclitus",
-            "Life can only be understood backwards; but it must be lived forwards. — Søren Kierkegaard",
-            "God is dead. God remains dead. And we have killed him. — Friedrich Nietzsche",
-            "Freedom is what you do with what's been done to you. — Jean-Paul Sartre",
-            "In the depth of winter, I finally learned that within me there lay an invincible summer. — Albert Camus",
-            "He who has a why to live can bear almost any how. — Friedrich Nietzsche"
+            '"BOOM TARAT-TARAT." — WILLIE REVILLAME',
+            '"PAG HINDI AKO PAPASOK, HINAHANAP NIYO AKO, DIBA? NGAYON PAPASOK AKO, TATANUNGIN N\'YO AKO BAKIT AKO PUMASOK?" — BATO DELA ROSA',
+            '"WALANG HIMALA!" — NORA AUNOR',
+            '"YOU’RE NOTHING BUT A SECOND-RATE, TRYING HARD COPYCAT!" — CHERIE GIL',
+            '"AMALAYER?" — PAULA JAMIAS',
+            '"I DON’T CARE." — KRIS AQUINO',
+            '"LOVE LOVE LOVE!" — KRIS AQUINO',
+            '"SINONG MAY SALA? SINONG DAPAT SISIHIN?" — MIRIAM DEFENSOR SANTIAGO',
+            '"ANG KABATAAN ANG PAG-ASA NG BAYAN." — JOSÉ RIZAL',
+            '"EXISTENCE PRECEDES ESSENCE." — JEAN-PAUL SARTRE',
+            '"HELL IS OTHER PEOPLE." — JEAN-PAUL SARTRE',
+            '"MAN IS CONDEMNED TO BE FREE." — JEAN-PAUL SARTRE',
+            '"GOD IS DEAD. GOD REMAINS DEAD. AND WE HAVE KILLED HIM." — FRIEDRICH NIETZSCHE',
+            '"HE WHO HAS A WHY TO LIVE CAN BEAR ALMOST ANY HOW." — FRIEDRICH NIETZSCHE',
+            '"THE UNEXAMINED LIFE IS NOT WORTH LIVING." — SOCRATES',
+            '"ANXIETY IS THE DIZZINESS OF FREEDOM." — SØREN KIERKEGAARD',
+            '"NO MAN EVER STEPS IN THE SAME RIVER TWICE." — HERACLITUS',
+            '"THE STRUGGLE ITSELF TOWARD THE HEIGHTS IS ENOUGH TO FILL A MAN’S HEART." — ALBERT CAMUS',
+            '"FREEDOM IS WHAT YOU DO WITH WHAT’S BEEN DONE TO YOU." — JEAN-PAUL SARTRE',
+            '"IN THE DAY THAT YOU EAT FROM IT YOU WILL CERTAINLY DIE." — GENESIS 2:17',
+            '"THE SERPENT DECEIVED ME, AND I ATE." — GENESIS 3:13',
+            '"DUST YOU ARE AND TO DUST YOU WILL RETURN." — GENESIS 3:19',
+            '"SIN IS CROUCHING AT YOUR DOOR; IT DESIRES TO HAVE YOU, BUT YOU MUST RULE OVER IT." — GENESIS 4:7',
+            '"VANITY OF VANITIES; ALL IS VANITY." — ECCLESIASTES 1:2',
+            '"FOR EVERYTHING THERE IS A SEASON." — ECCLESIASTES 3:1',
+            '"ALL GO TO ONE PLACE; ALL ARE FROM THE DUST." — ECCLESIASTES 3:20',
+            '"THE DEAD KNOW NOTHING." — ECCLESIASTES 9:5',
+            '"WHAT IS YOUR LIFE? YOU ARE A MIST THAT APPEARS FOR A LITTLE TIME AND THEN VANISHES." — JAMES 4:14',
+            '"THE WAGES OF SIN IS DEATH." — ROMANS 6:23',
+            '"I WAS ALIVE WITHOUT THE LAW ONCE; BUT WHEN THE COMMANDMENT CAME, SIN REVIVED, AND I DIED." — ROMANS 7:9',
+            '"WIDE IS THE GATE, AND BROAD IS THE WAY, THAT LEADS TO DESTRUCTION." — MATTHEW 7:13',
+            '"MANY ARE CALLED, BUT FEW ARE CHOSEN." — MATTHEW 22:14',
+            '"LET THE DEAD BURY THEIR DEAD." — MATTHEW 8:22',
+            '"MY GOD, MY GOD, WHY HAVE YOU FORSAKEN ME?" — MATTHEW 27:46',
+            '"TO EVERYTHING THERE IS A SEASON, AND A TIME TO EVERY PURPOSE UNDER THE HEAVEN." — ECCLESIASTES 3:1',
+            '"MAN IS LIKE A BREATH; HIS DAYS ARE LIKE A PASSING SHADOW." — PSALM 144:4',
+            '"FOR DUST YOU ARE, AND TO DUST YOU SHALL RETURN." — GENESIS 3:19',
+            '"THE HEART IS DECEITFUL ABOVE ALL THINGS." — JEREMIAH 17:9',
+            '"THE LAST ENEMY THAT SHALL BE DESTROYED IS DEATH." — 1 CORINTHIANS 15:26',
+            '"REMEMBER NOW YOUR CREATOR IN THE DAYS OF YOUR YOUTH." — ECCLESIASTES 12:1',
+            '"ALL FLESH IS GRASS." — ISAIAH 40:6',
+            '"THE LIGHT SHINES IN THE DARKNESS, AND THE DARKNESS HAS NOT OVERCOME IT." — JOHN 1:5',
+            '"WHOEVER WANTS TO SAVE THEIR LIFE WILL LOSE IT." — MATTHEW 16:25'
         ];
 
         const colors = {
@@ -501,6 +562,43 @@
 
         function getRandomQuote() {
             return philosophyQuotes[Math.floor(Math.random() * philosophyQuotes.length)];
+        }
+
+        function getRandomQuotes(count) {
+            const shuffled = [...philosophyQuotes].sort(() => Math.random() - 0.5);
+            return shuffled.slice(0, count);
+        }
+
+        function renderScatteredQuotes() {
+            const quoteCloud = document.getElementById('quoteCloud');
+            quoteCloud.innerHTML = '';
+
+            const selectedQuotes = getRandomQuotes(5);
+
+            selectedQuotes.forEach((quote, index) => {
+                const quoteElement = document.createElement('div');
+                quoteElement.textContent = quote;
+                quoteElement.classList.add('scattered-quote');
+
+                if (index === 0) {
+                    quoteElement.classList.add('main-quote');
+                } else {
+                    const positions = [
+                        { left: '5%', top: '8%', rotate: '-4deg' },
+                        { left: '58%', top: '10%', rotate: '3deg' },
+                        { left: '7%', top: '68%', rotate: '2deg' },
+                        { left: '58%', top: '68%', rotate: '-3deg' }
+                    ];
+
+                    const position = positions[index - 1];
+
+                    quoteElement.style.left = position.left;
+                    quoteElement.style.top = position.top;
+                    quoteElement.style.transform = `rotate(${position.rotate})`;
+                }
+
+                quoteCloud.appendChild(quoteElement);
+            });
         }
 
         async function startGame() {
@@ -720,7 +818,7 @@
             updateDisplay();
 
             document.getElementById('finalScore').textContent = score;
-            document.getElementById('philosophyQuote').textContent = '"' + getRandomQuote() + '"';
+            renderScatteredQuotes();
 
             gameOverScreen.classList.add('active');
         }
