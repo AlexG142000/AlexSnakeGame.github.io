@@ -331,7 +331,7 @@
 
         let highScore = Number(localStorage.getItem('snakeHighScore')) || 0;
 
-        let gameSpeed = 110;
+        let gameSpeed = 100;
         let sfxEnabled = true;
 
         let gridCanvas = document.createElement('canvas');
@@ -581,7 +581,7 @@
             nextDirection = { x: 1, y: 0 };
 
             score = 0;
-            gameSpeed = 110;
+            gameSpeed = 100;
 
             generateFood();
             updateDisplay();
@@ -608,7 +608,7 @@
             nextDirection = { x: 1, y: 0 };
 
             score = 0;
-            gameSpeed = 110;
+            gameSpeed = 100;
 
             gamePaused = false;
             gameRunning = false;
@@ -669,7 +669,9 @@
 
                 playCrunchSound();
 
-                gameSpeed = Math.max(55, gameSpeed * 0.92);
+                if (score % 5 === 0) {
+                    gameSpeed = Math.max(50, gameSpeed - 10);
+                }
 
                 generateFood();
             } else {
