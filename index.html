@@ -135,8 +135,7 @@
         .game-over-screen {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
+            inset: 0;
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.95);
@@ -199,8 +198,7 @@
         .rapture-warning {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
+            inset: 0;
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.95);
@@ -208,7 +206,10 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            gap: 40px;
+            gap: 34px;
+            padding: 30px;
+            text-align: center;
+            overflow: hidden;
         }
 
         .rapture-warning.active {
@@ -216,34 +217,26 @@
         }
 
         .rapture-title {
-            font-size: clamp(2.5rem, 10vw, 6rem);
+            width: min(92vw, 1100px);
+            font-size: clamp(2rem, 7vw, 5.2rem);
             color: #ff0000;
-            text-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000, 0 0 60px #ff0000;
+            text-shadow: 0 0 20px #ff0000, 0 0 36px #ff0000;
             font-weight: bold;
-            letter-spacing: 4px;
-            line-height: 1.3;
+            letter-spacing: clamp(1px, 0.6vw, 4px);
+            line-height: 1.12;
             text-align: center;
-            animation: raptureFlash 0.4s infinite, raptureScale 0.7s ease-in-out infinite;
+            animation: raptureFlash 0.45s infinite;
         }
 
         .rapture-instructions {
-            font-size: clamp(1.2rem, 4vw, 2rem);
+            width: min(90vw, 900px);
+            font-size: clamp(1rem, 3.2vw, 2rem);
             color: #ffff00;
-            text-shadow: 0 0 15px #ffff00;
+            text-shadow: 0 0 12px #ffff00;
             font-weight: bold;
             letter-spacing: 2px;
-            line-height: 1.5;
+            line-height: 1.35;
             text-align: center;
-            animation: pulse 0.6s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.6;
-            }
         }
 
         @keyframes raptureFlash {
@@ -251,16 +244,7 @@
                 opacity: 1;
             }
             50%, 99% {
-                opacity: 0.2;
-            }
-        }
-
-        @keyframes raptureScale {
-            0%, 100% {
-                transform: translate(-50%, -50%) scale(1);
-            }
-            50% {
-                transform: translate(-50%, -50%) scale(1.15);
+                opacity: 0.35;
             }
         }
 
@@ -364,9 +348,26 @@
         const gridSize = 20;
 
         const startSpeed = 110;
-        const minSpeed = 60;
+        const raptureStartSpeed = 94;
+        const minSpeed = 58;
         const speedStep = 8;
         const fruitsPerSpeedUp = 5;
+
+        const initialCursedFruitCount = 4;
+        const maxCursedFruitCount = 9;
+        const maxBigCursedFruits = 3;
+
+        const baseCursedFruitMoveInterval = 7;
+        const minCursedFruitMoveInterval = 2;
+
+        const baseGlitchChance = 0.015;
+        const maxGlitchChance = 0.18;
+        const baseGlitchCooldown = 18;
+        const minGlitchCooldown = 5;
+        const glitchUnlockScore = 3;
+        const glitchDurationMin = 3;
+        const glitchDurationMax = 4;
+        const glitchShiftMax = 4;
 
         let tileCountX = 40;
         let tileCountY = 25;
@@ -379,6 +380,7 @@
         let nextDirection = { x: 1, y: 0 };
 
         let score = 0;
+        let raptureThreatLevel = 0;
         let highScore = Number(localStorage.getItem('snakeHighScore')) || 0;
 
         let gameRunning = false;
@@ -389,8 +391,11 @@
 
         let gameSpeed = startSpeed;
         let gameTimer = null;
-        let cursedFruitMoveCounter = 0;
-        const cursedFruitMoveInterval = 8;
+
+        let tickCount = 0;
+        let glitchTicks = 0;
+        let glitchCooldown = 0;
+        let activeGlitchText = '';
 
         let gridCanvas = document.createElement('canvas');
         let gridCtx = gridCanvas.getContext('2d', { alpha: false });
@@ -420,7 +425,38 @@
             '"SIN IS CROUCHING AT YOUR DOOR." — GENESIS 4:7',
             '"VANITY OF VANITIES; ALL IS VANITY." — ECCLESIASTES 1:2',
             '"THE WAGES OF SIN IS DEATH." — ROMANS 6:23',
-            '"LET THE DEAD BURY THEIR DEAD." — MATTHEW 8:22',
+            '"LET THE DEAD BURY THEIR DEAD." — MATTHEW 8:22'
+        ];
+
+        const glitchTexts = [
+            'THE SERPENT MOVES YOU',
+            'EDEN SHIFTS',
+            'DO NOT LOOK BACK',
+            'SIN REWRITES THE MAP',
+            'YOU WERE NEVER IN CONTROL',
+            'FATHER, I THIRST',
+            'THE FRUIT REMEMBERS',
+            'YOUR PATH HAS BEEN FORGIVEN, THEN REVOKED',
+            'THE GARDEN BLINKED',
+            'A MOUTH OPENS IN THE GRID',
+            'THE APPLE DREAMS OF BLOOD',
+            'YOUR BODY IS NOT WHERE YOU LEFT IT',
+            'THE SNAKE PRAYS BACKWARDS',
+            'PARADISE MISPLACED YOU',
+            'THE EXIT MOVED',
+            'HEAVEN BUFFERING',
+            'THE COMMANDMENT HAS UPDATED',
+            'YOU HAVE BEEN RECALCULATED',
+            'THE CURSE HAS AUTOSAVED',
+            'GOD IS WATCHING IN LOW RESOLUTION',
+            'THE MAP CONFESSES',
+            'YOUR SHADOW ATE FIRST',
+            'THE ANGEL MISCLICKED',
+            'THE WALLS ARE LEARNING',
+            'YOU ARE BEING PATCHED',
+            'THE GARDEN HAS NO UNDO',
+            'THE FRUIT IS CLOSER THAN IT APPEARS',
+            'EDEN DOES NOT SUPPORT REFUNDS'
         ];
 
         const colors = {
@@ -428,6 +464,7 @@
             snakeHead: '#ffff00',
             food: '#ff00ff',
             cursedFood: '#ff0000',
+            cursedBig: '#ff3300',
             background: '#1a1a1a',
             grid: '#003300'
         };
@@ -436,6 +473,10 @@
         gameOverSFX.volume = 0.55;
 
         highScoreDisplay.textContent = highScore;
+
+        function clamp(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
 
         function getRandomQuote() {
             return philosophyQuotes[Math.floor(Math.random() * philosophyQuotes.length)];
@@ -484,6 +525,50 @@
             if (gameRunning && gameStarted && !gamePaused) {
                 startGameTimer();
             }
+        }
+
+        function getCurrentCursedMoveInterval() {
+            return clamp(
+                baseCursedFruitMoveInterval - Math.floor(raptureThreatLevel / 2),
+                minCursedFruitMoveInterval,
+                baseCursedFruitMoveInterval
+            );
+        }
+
+        function getCurrentChaseChance() {
+            return clamp(0.42 + (raptureThreatLevel * 0.045), 0.42, 0.82);
+        }
+
+        function getCurrentBigChance() {
+            return clamp(0.14 + (raptureThreatLevel * 0.018), 0.14, 0.34);
+        }
+
+        function getCurrentGlitchChance() {
+            if (score < glitchUnlockScore) {
+                return 0;
+            }
+
+            const progress = Math.max(0, raptureThreatLevel - glitchUnlockScore + 1);
+
+            return clamp(
+                baseGlitchChance + (progress * 0.018),
+                baseGlitchChance,
+                maxGlitchChance
+            );
+        }
+
+        function getCurrentGlitchCooldown() {
+            if (score < glitchUnlockScore) {
+                return baseGlitchCooldown;
+            }
+
+            const progress = Math.max(0, raptureThreatLevel - glitchUnlockScore + 1);
+
+            return clamp(
+                baseGlitchCooldown - Math.floor(progress / 2),
+                minGlitchCooldown,
+                baseGlitchCooldown
+            );
         }
 
         function resizeCanvas() {
@@ -573,30 +658,22 @@
             switch (key) {
                 case 'ARROWUP':
                 case 'W':
-                    if (direction.y === 0) {
-                        nextDirection = { x: 0, y: -1 };
-                    }
+                    if (direction.y === 0) nextDirection = { x: 0, y: -1 };
                     break;
 
                 case 'ARROWDOWN':
                 case 'S':
-                    if (direction.y === 0) {
-                        nextDirection = { x: 0, y: 1 };
-                    }
+                    if (direction.y === 0) nextDirection = { x: 0, y: 1 };
                     break;
 
                 case 'ARROWLEFT':
                 case 'A':
-                    if (direction.x === 0) {
-                        nextDirection = { x: -1, y: 0 };
-                    }
+                    if (direction.x === 0) nextDirection = { x: -1, y: 0 };
                     break;
 
                 case 'ARROWRIGHT':
                 case 'D':
-                    if (direction.x === 0) {
-                        nextDirection = { x: 1, y: 0 };
-                    }
+                    if (direction.x === 0) nextDirection = { x: 1, y: 0 };
                     break;
 
                 case ' ':
@@ -632,6 +709,10 @@
             nextDirection = { x: 1, y: 0 };
 
             score = 0;
+            raptureThreatLevel = 0;
+            tickCount = 0;
+            glitchTicks = 0;
+            glitchCooldown = 0;
             gameSpeed = startSpeed;
             isRaptureMode = false;
             cursedFruits = [];
@@ -642,6 +723,7 @@
             gameRunning = true;
             gamePaused = false;
             gameStarted = false;
+            showingRaptureWarning = false;
 
             gameOverScreen.classList.remove('active');
             raptureWarning.classList.remove('active');
@@ -661,16 +743,20 @@
             nextDirection = { x: 1, y: 0 };
 
             score = 0;
-            gameSpeed = startSpeed - 25;
+            raptureThreatLevel = 0;
+            tickCount = 0;
+            glitchTicks = 0;
+            glitchCooldown = baseGlitchCooldown;
+            gameSpeed = raptureStartSpeed;
             isRaptureMode = true;
-            cursedFruitMoveCounter = 0;
             cursedFruits = [];
 
-            for (let i = 0; i < 4; i++) {
+            generateFood();
+
+            for (let i = 0; i < initialCursedFruitCount; i++) {
                 cursedFruits.push(generateCursedFruit());
             }
 
-            generateFood();
             updateDisplay();
 
             gameRunning = true;
@@ -696,6 +782,10 @@
             nextDirection = { x: 1, y: 0 };
 
             score = 0;
+            raptureThreatLevel = 0;
+            tickCount = 0;
+            glitchTicks = 0;
+            glitchCooldown = 0;
             gameSpeed = startSpeed;
             isRaptureMode = false;
             cursedFruits = [];
@@ -703,6 +793,7 @@
             gameRunning = false;
             gamePaused = false;
             gameStarted = false;
+            showingRaptureWarning = false;
 
             generateFood();
             updateDisplay();
@@ -713,32 +804,45 @@
             draw();
         }
 
-        function generateFood() {
-            let newX;
-            let newY;
-            let validPosition = false;
+        function isCellOnSnake(x, y) {
+            for (let i = 0; i < snake.length; i++) {
+                if (snake[i].x === x && snake[i].y === y) return true;
+            }
+            return false;
+        }
 
-            while (!validPosition) {
+        function isCellOnFood(x, y) {
+            return food.x === x && food.y === y;
+        }
+
+        function isCellOnCursedFruit(x, y, skipIndex = -1) {
+            for (let i = 0; i < cursedFruits.length; i++) {
+                if (i === skipIndex) continue;
+                if (cursedFruits[i].x === x && cursedFruits[i].y === y) return true;
+            }
+            return false;
+        }
+
+        function isNearSnakeHead(x, y, radius) {
+            const head = snake[0];
+            return Math.abs(head.x - x) <= radius && Math.abs(head.y - y) <= radius;
+        }
+
+        function generateFood() {
+            let newX = 0;
+            let newY = 0;
+            let validPosition = false;
+            let attempts = 0;
+
+            while (!validPosition && attempts < 500) {
+                attempts++;
+
                 newX = Math.floor(Math.random() * tileCountX);
                 newY = Math.floor(Math.random() * tileCountY);
 
-                validPosition = true;
-
-                for (let i = 0; i < snake.length; i++) {
-                    if (snake[i].x === newX && snake[i].y === newY) {
-                        validPosition = false;
-                        break;
-                    }
-                }
-
-                if (validPosition && isRaptureMode) {
-                    for (let i = 0; i < cursedFruits.length; i++) {
-                        if (cursedFruits[i].x === newX && cursedFruits[i].y === newY) {
-                            validPosition = false;
-                            break;
-                        }
-                    }
-                }
+                validPosition =
+                    !isCellOnSnake(newX, newY) &&
+                    !isCellOnCursedFruit(newX, newY);
             }
 
             food.x = newX;
@@ -746,97 +850,305 @@
         }
 
         function generateCursedFruit() {
-            let newX, newY, validPosition = false;
+            let newX = 0;
+            let newY = 0;
+            let validPosition = false;
+            let attempts = 0;
 
-            while (!validPosition) {
+            while (!validPosition && attempts < 500) {
+                attempts++;
+
                 newX = Math.floor(Math.random() * tileCountX);
                 newY = Math.floor(Math.random() * tileCountY);
 
-                validPosition = true;
+                validPosition =
+                    !isCellOnSnake(newX, newY) &&
+                    !isCellOnFood(newX, newY) &&
+                    !isCellOnCursedFruit(newX, newY) &&
+                    !isNearSnakeHead(newX, newY, 4);
+            }
 
-                for (let i = 0; i < snake.length; i++) {
-                    if (snake[i].x === newX && snake[i].y === newY) {
-                        validPosition = false;
-                        break;
-                    }
-                }
+            return {
+                x: newX,
+                y: newY,
+                size: 1,
+                bigTicks: 0
+            };
+        }
 
-                if (validPosition && (newX === food.x && newY === food.y)) {
-                    validPosition = false;
-                }
+        function countBigCursedFruits() {
+            let count = 0;
 
-                if (validPosition) {
-                    for (let i = 0; i < cursedFruits.length; i++) {
-                        if (cursedFruits[i].x === newX && cursedFruits[i].y === newY) {
-                            validPosition = false;
-                            break;
-                        }
-                    }
+            for (let i = 0; i < cursedFruits.length; i++) {
+                if (cursedFruits[i].size > 1) count++;
+            }
+
+            return count;
+        }
+
+        function cursedFruitTouchesCell(fruit, x, y) {
+            if (fruit.size <= 1) {
+                return fruit.x === x && fruit.y === y;
+            }
+
+            return Math.abs(fruit.x - x) <= 1 && Math.abs(fruit.y - y) <= 1;
+        }
+
+        function isValidCursedFruitPosition(x, y, size, skipIndex) {
+            if (x < 0 || x >= tileCountX || y < 0 || y >= tileCountY) return false;
+            if (isCellOnFood(x, y)) return false;
+            if (isCellOnCursedFruit(x, y, skipIndex)) return false;
+
+            for (let i = 0; i < snake.length; i++) {
+                if (size > 1) {
+                    if (Math.abs(snake[i].x - x) <= 1 && Math.abs(snake[i].y - y) <= 1) return false;
+                } else if (snake[i].x === x && snake[i].y === y) {
+                    return false;
                 }
             }
 
-            return { x: newX, y: newY };
+            return true;
         }
 
-        function moveCursedFruits() {
+        function intensifyRaptureAfterFruit() {
             if (!isRaptureMode) return;
 
-            cursedFruitMoveCounter++;
+            raptureThreatLevel++;
 
-            if (cursedFruitMoveCounter < cursedFruitMoveInterval) return;
+            if (score % 3 === 0 && cursedFruits.length < maxCursedFruitCount) {
+                cursedFruits.push(generateCursedFruit());
+            }
 
-            cursedFruitMoveCounter = 0;
+            empowerNearestCursedFruit();
+
+            if (score % 2 === 0) {
+                nudgeCursedFruitTowardSnake();
+            }
+
+            if (score >= glitchUnlockScore) {
+                glitchCooldown = Math.max(minGlitchCooldown, glitchCooldown - 1);
+            }
+        }
+
+        function empowerNearestCursedFruit() {
+            if (cursedFruits.length === 0) return;
+
+            const head = snake[0];
+            let nearestIndex = 0;
+            let nearestDistance = Infinity;
 
             for (let i = 0; i < cursedFruits.length; i++) {
                 const fruit = cursedFruits[i];
-                
-                const moveTypes = Math.random();
+                const distance = Math.abs(head.x - fruit.x) + Math.abs(head.y - fruit.y);
+
+                if (distance < nearestDistance) {
+                    nearestDistance = distance;
+                    nearestIndex = i;
+                }
+            }
+
+            const fruit = cursedFruits[nearestIndex];
+
+            if (
+                fruit.size === 1 &&
+                countBigCursedFruits() < maxBigCursedFruits &&
+                !isNearSnakeHead(fruit.x, fruit.y, 3)
+            ) {
+                fruit.size = 2;
+                fruit.bigTicks = 5 + Math.floor(Math.random() * 4);
+            }
+        }
+
+        function nudgeCursedFruitTowardSnake() {
+            if (cursedFruits.length === 0) return;
+
+            const index = Math.floor(Math.random() * cursedFruits.length);
+            const fruit = cursedFruits[index];
+            const head = snake[0];
+
+            let newX = fruit.x;
+            let newY = fruit.y;
+
+            if (Math.abs(head.x - fruit.x) > Math.abs(head.y - fruit.y)) {
+                newX += head.x > fruit.x ? 1 : -1;
+            } else {
+                newY += head.y > fruit.y ? 1 : -1;
+            }
+
+            if (isValidCursedFruitPosition(newX, newY, fruit.size, index)) {
+                fruit.x = newX;
+                fruit.y = newY;
+            }
+        }
+
+        function updateCursedFruits() {
+            if (!isRaptureMode || showingRaptureWarning) return;
+
+            if (tickCount % getCurrentCursedMoveInterval() !== 0) {
+                updateBigFruitTimersOnly();
+                return;
+            }
+
+            const snakeHead = snake[0];
+            const chaseChance = getCurrentChaseChance();
+            const bigChance = getCurrentBigChance();
+
+            for (let i = 0; i < cursedFruits.length; i++) {
+                const fruit = cursedFruits[i];
+
+                if (fruit.bigTicks > 0) {
+                    fruit.bigTicks--;
+
+                    if (fruit.bigTicks <= 0) {
+                        fruit.size = 1;
+                    }
+                }
+
+                if (
+                    fruit.size === 1 &&
+                    countBigCursedFruits() < maxBigCursedFruits &&
+                    Math.random() < bigChance &&
+                    !isNearSnakeHead(fruit.x, fruit.y, 3)
+                ) {
+                    fruit.size = 2;
+                    fruit.bigTicks = 5 + Math.floor(Math.random() * 5);
+                }
+
                 let newX = fruit.x;
                 let newY = fruit.y;
 
-                if (moveTypes < 0.6) {
-                    const direction = Math.floor(Math.random() * 4);
-                    switch (direction) {
-                        case 0: newX = (fruit.x + 1) % tileCountX; break;
-                        case 1: newX = (fruit.x - 1 + tileCountX) % tileCountX; break;
-                        case 2: newY = (fruit.y + 1) % tileCountY; break;
-                        case 3: newY = (fruit.y - 1 + tileCountY) % tileCountY; break;
+                const roll = Math.random();
+
+                if (roll < chaseChance) {
+                    if (Math.abs(snakeHead.x - fruit.x) > Math.abs(snakeHead.y - fruit.y)) {
+                        newX += snakeHead.x > fruit.x ? 1 : -1;
+                    } else {
+                        newY += snakeHead.y > fruit.y ? 1 : -1;
                     }
+                } else if (roll < 0.94) {
+                    const dir = Math.floor(Math.random() * 4);
+                    if (dir === 0) newX += 1;
+                    if (dir === 1) newX -= 1;
+                    if (dir === 2) newY += 1;
+                    if (dir === 3) newY -= 1;
                 } else {
                     newX = Math.floor(Math.random() * tileCountX);
                     newY = Math.floor(Math.random() * tileCountY);
                 }
 
-                let validPosition = true;
-
-                for (let j = 0; j < snake.length; j++) {
-                    if (snake[j].x === newX && snake[j].y === newY) {
-                        validPosition = false;
-                        break;
-                    }
-                }
-
-                if (validPosition && food.x === newX && food.y === newY) {
-                    validPosition = false;
-                }
-
-                if (validPosition && i !== cursedFruits.length - 1) {
-                    for (let j = 0; j < cursedFruits.length; j++) {
-                        if (i !== j && cursedFruits[j].x === newX && cursedFruits[j].y === newY) {
-                            validPosition = false;
-                            break;
-                        }
-                    }
-                }
-
-                if (validPosition) {
+                if (isValidCursedFruitPosition(newX, newY, fruit.size, i)) {
                     fruit.x = newX;
                     fruit.y = newY;
                 }
             }
         }
 
+        function updateBigFruitTimersOnly() {
+            for (let i = 0; i < cursedFruits.length; i++) {
+                const fruit = cursedFruits[i];
+
+                if (fruit.bigTicks > 0) {
+                    fruit.bigTicks--;
+
+                    if (fruit.bigTicks <= 0) {
+                        fruit.size = 1;
+                    }
+                }
+            }
+        }
+
+        function checkCursedFruitCollision(headX, headY) {
+            if (!isRaptureMode || showingRaptureWarning) return false;
+
+            for (let i = 0; i < cursedFruits.length; i++) {
+                if (cursedFruitTouchesCell(cursedFruits[i], headX, headY)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        function maybeTriggerGlitch() {
+            if (!isRaptureMode || showingRaptureWarning || glitchTicks > 0) return;
+
+            if (score < glitchUnlockScore) {
+                return;
+            }
+
+            if (glitchCooldown > 0) {
+                glitchCooldown--;
+                return;
+            }
+
+            const shouldGlitch = Math.random() < getCurrentGlitchChance();
+
+            if (shouldGlitch) {
+                glitchTicks = glitchDurationMin + Math.floor(Math.random() * (glitchDurationMax - glitchDurationMin + 1));
+                glitchCooldown = getCurrentGlitchCooldown() + Math.floor(Math.random() * 4);
+                activeGlitchText = glitchTexts[Math.floor(Math.random() * glitchTexts.length)];
+
+                displaceSnakeSafely();
+            }
+        }
+
+        function displaceSnakeSafely() {
+            if (!isRaptureMode || snake.length === 0) return;
+
+            const offsets = [];
+
+            for (let dx = -glitchShiftMax; dx <= glitchShiftMax; dx++) {
+                for (let dy = -glitchShiftMax; dy <= glitchShiftMax; dy++) {
+                    if (dx === 0 && dy === 0) continue;
+                    if (Math.abs(dx) + Math.abs(dy) < 2) continue;
+
+                    offsets.push({ dx, dy });
+                }
+            }
+
+            for (let i = offsets.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const temp = offsets[i];
+                offsets[i] = offsets[j];
+                offsets[j] = temp;
+            }
+
+            for (let i = 0; i < offsets.length; i++) {
+                const dx = offsets[i].dx;
+                const dy = offsets[i].dy;
+
+                if (canShiftSnake(dx, dy)) {
+                    for (let s = 0; s < snake.length; s++) {
+                        snake[s].x += dx;
+                        snake[s].y += dy;
+                    }
+
+                    return;
+                }
+            }
+        }
+
+        function canShiftSnake(dx, dy) {
+            for (let i = 0; i < snake.length; i++) {
+                const newX = snake[i].x + dx;
+                const newY = snake[i].y + dy;
+
+                if (newX < 0 || newX >= tileCountX || newY < 0 || newY >= tileCountY) {
+                    return false;
+                }
+
+                for (let c = 0; c < cursedFruits.length; c++) {
+                    if (cursedFruitTouchesCell(cursedFruits[c], newX, newY)) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         function update() {
+            tickCount++;
             direction = nextDirection;
 
             const headX = snake[0].x + direction.x;
@@ -859,37 +1171,30 @@
                 }
             }
 
-            if (isRaptureMode && !showingRaptureWarning) {
-                for (let i = 0; i < cursedFruits.length; i++) {
-                    if (cursedFruits[i].x === headX && cursedFruits[i].y === headY) {
-                        endGame();
-                        return;
-                    }
-                }
-                moveCursedFruits();
+            if (checkCursedFruitCollision(headX, headY)) {
+                endGame();
+                return;
             }
 
             snake.unshift({ x: headX, y: headY });
 
             if (headX === food.x && headY === food.y) {
                 score += 1;
-
                 playCrunchSound();
 
                 if (score % fruitsPerSpeedUp === 0) {
-                    gameSpeed = Math.max(minSpeed - 10, gameSpeed - speedStep);
+                    gameSpeed = Math.max(isRaptureMode ? minSpeed - 8 : minSpeed, gameSpeed - speedStep);
                     restartGameTimerWithNewSpeed();
-
-                    if (isRaptureMode && cursedFruits.length < 6) {
-                        cursedFruits.push(generateCursedFruit());
-                    }
                 }
 
+                intensifyRaptureAfterFruit();
                 generateFood();
             } else {
                 snake.pop();
             }
 
+            updateCursedFruits();
+            maybeTriggerGlitch();
             updateDisplay();
         }
 
@@ -901,14 +1206,26 @@
         function draw() {
             ctx.drawImage(gridCanvas, 0, 0);
 
+            if (glitchTicks > 0) {
+                drawGlitchBaseShift();
+            }
+
+            drawSnake();
+            drawFood();
+            drawCursedFruits();
+            drawGameText();
+
+            if (glitchTicks > 0) {
+                drawFullScreenGlitch();
+                glitchTicks--;
+            }
+        }
+
+        function drawSnake() {
             for (let i = snake.length - 1; i >= 0; i--) {
                 const segment = snake[i];
 
-                if (i === 0) {
-                    ctx.fillStyle = colors.snakeHead;
-                } else {
-                    ctx.fillStyle = colors.snake;
-                }
+                ctx.fillStyle = i === 0 ? colors.snakeHead : colors.snake;
 
                 ctx.fillRect(
                     segment.x * gridSize + 1,
@@ -917,7 +1234,9 @@
                     gridSize - 2
                 );
             }
+        }
 
+        function drawFood() {
             ctx.fillStyle = colors.food;
 
             ctx.beginPath();
@@ -929,26 +1248,38 @@
                 Math.PI * 2
             );
             ctx.fill();
+        }
 
-            if (isRaptureMode) {
-                ctx.fillStyle = colors.cursedFood;
+        function drawCursedFruits() {
+            if (!isRaptureMode) return;
 
-                for (let i = 0; i < cursedFruits.length; i++) {
-                    const fruit = cursedFruits[i];
+            for (let i = 0; i < cursedFruits.length; i++) {
+                const fruit = cursedFruits[i];
 
-                    ctx.beginPath();
-                    ctx.arc(
-                        fruit.x * gridSize + gridSize / 2,
-                        fruit.y * gridSize + gridSize / 2,
-                        gridSize / 2 - 2,
-                        0,
-                        Math.PI * 2
-                    );
-                    ctx.fill();
+                ctx.fillStyle = fruit.size > 1 ? colors.cursedBig : colors.cursedFood;
+
+                const radius = fruit.size > 1 ? gridSize * 1.15 : gridSize / 2 - 2;
+
+                ctx.beginPath();
+                ctx.arc(
+                    fruit.x * gridSize + gridSize / 2,
+                    fruit.y * gridSize + gridSize / 2,
+                    radius,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fill();
+
+                if (fruit.size > 1) {
+                    ctx.strokeStyle = '#ffff00';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
                 }
             }
+        }
 
-            if (!gameStarted && gameRunning) {
+        function drawGameText() {
+            if (!gameStarted && gameRunning && !showingRaptureWarning) {
                 ctx.fillStyle = 'rgba(0, 255, 255, 0.85)';
                 ctx.font = 'bold 28px Courier New';
                 ctx.textAlign = 'center';
@@ -975,6 +1306,75 @@
             }
         }
 
+        function drawGlitchBaseShift() {
+            ctx.save();
+
+            const shiftX = Math.floor(Math.random() * 14) - 7;
+            const shiftY = Math.floor(Math.random() * 8) - 4;
+
+            ctx.globalAlpha = 0.26;
+            ctx.drawImage(gridCanvas, shiftX, shiftY);
+
+            ctx.globalAlpha = 0.14;
+            ctx.drawImage(gridCanvas, -shiftX, 0);
+
+            ctx.restore();
+        }
+
+        function drawFullScreenGlitch() {
+            ctx.save();
+
+            const bandCount = 9;
+            const sliceCount = 4;
+
+            for (let i = 0; i < bandCount; i++) {
+                const y = Math.floor(Math.random() * canvas.height);
+                const h = 5 + Math.floor(Math.random() * 24);
+
+                ctx.globalAlpha = 0.18;
+                ctx.fillStyle = i % 2 === 0 ? '#ff00ff' : '#00ffff';
+                ctx.fillRect(0, y, canvas.width, h);
+            }
+
+            ctx.globalAlpha = 0.22;
+
+            for (let i = 0; i < sliceCount; i++) {
+                const y = Math.floor(Math.random() * canvas.height);
+                const h = 8 + Math.floor(Math.random() * 20);
+                const xOffset = Math.floor(Math.random() * 80) - 40;
+
+                ctx.drawImage(
+                    canvas,
+                    0,
+                    y,
+                    canvas.width,
+                    h,
+                    xOffset,
+                    y,
+                    canvas.width,
+                    h
+                );
+            }
+
+            ctx.globalAlpha = 0.16;
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.globalAlpha = 0.95;
+            ctx.fillStyle = '#ffff00';
+            ctx.font = 'bold 24px Courier New';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            ctx.fillText(
+                activeGlitchText,
+                canvas.width / 2 + (Math.floor(Math.random() * 16) - 8),
+                canvas.height / 2 + (Math.floor(Math.random() * 16) - 8)
+            );
+
+            ctx.restore();
+        }
+
         function endGame() {
             clearGameTimer();
 
@@ -995,6 +1395,7 @@
 
             gameOverScreen.classList.add('active');
             raptureWarning.classList.remove('active');
+
             showingRaptureWarning = false;
         }
 
