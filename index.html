@@ -255,11 +255,7 @@
 </head>
 
 <body>
-    <!-- Put these files in the same folder as this HTML file:
-        move.mp3
-        eat.mp3
-        gameover.mp3
-    -->
+
     <audio id="moveSFX" src="move.mp3" preload="auto"></audio>
     <audio id="eatSFX" src="eat.mp3" preload="auto"></audio>
     <audio id="gameOverSFX" src="gameover.mp3" preload="auto"></audio>
@@ -320,8 +316,10 @@
         let nextDirection = { x: 1, y: 0 };
 
         let score = 0;
+
         let gameRunning = false;
         let gamePaused = false;
+        let gameStarted = false;
 
         let highScore = Number(localStorage.getItem('snakeHighScore')) || 0;
 
@@ -338,8 +336,8 @@
             '"LOVE LOVE LOVE!" — KRIS AQUINO',
             '"SINONG MAY SALA? SINONG DAPAT SISIHIN?" — MIRIAM DEFENSOR SANTIAGO',
             '"ANG KABATAAN ANG PAG-ASA NG BAYAN." — JOSÉ RIZAL',
-            '"DO NOT TOUCH MY COUNTRYMAN" — ROBIN PADILLA IN PUNCHING A FOREIGNER AT THE AIRPORT',
-            '"I DO NOT CARE ABOUT HUMAN RIGHTS, I CARE ABOUT HUMAN LIVES" — DU30',
+            '"DO NOT TOUCH MY COUNTRYMAN." — ROBIN PADILLA',
+            '"I DO NOT CARE ABOUT HUMAN RIGHTS, I CARE ABOUT HUMAN LIVES." — RODRIGO DUTERTE',
 
             '"EXISTENCE PRECEDES ESSENCE." — JEAN-PAUL SARTRE',
             '"HELL IS OTHER PEOPLE." — JEAN-PAUL SARTRE',
@@ -350,30 +348,15 @@
             '"ANXIETY IS THE DIZZINESS OF FREEDOM." — SØREN KIERKEGAARD',
             '"NO MAN EVER STEPS IN THE SAME RIVER TWICE." — HERACLITUS',
             '"THE STRUGGLE ITSELF TOWARD THE HEIGHTS IS ENOUGH TO FILL A MAN’S HEART." — ALBERT CAMUS',
-            '"FREEDOM IS WHAT YOU DO WITH WHAT’S BEEN DONE TO YOU." — JEAN-PAUL SARTRE',
 
             '"IN THE DAY THAT YOU EAT FROM IT YOU WILL CERTAINLY DIE." — GENESIS 2:17',
             '"THE SERPENT DECEIVED ME, AND I ATE." — GENESIS 3:13',
             '"DUST YOU ARE AND TO DUST YOU WILL RETURN." — GENESIS 3:19',
-            '"SIN IS CROUCHING AT YOUR DOOR; IT DESIRES TO HAVE YOU, BUT YOU MUST RULE OVER IT." — GENESIS 4:7',
+            '"SIN IS CROUCHING AT YOUR DOOR." — GENESIS 4:7',
             '"VANITY OF VANITIES; ALL IS VANITY." — ECCLESIASTES 1:2',
-            '"ALL GO TO ONE PLACE; ALL ARE FROM THE DUST." — ECCLESIASTES 3:20',
-            '"THE DEAD KNOW NOTHING." — ECCLESIASTES 9:5',
-            '"WHAT IS YOUR LIFE? YOU ARE A MIST THAT APPEARS FOR A LITTLE TIME AND THEN VANISHES." — JAMES 4:14',
             '"THE WAGES OF SIN IS DEATH." — ROMANS 6:23',
-            '"I WAS ALIVE WITHOUT THE LAW ONCE; BUT WHEN THE COMMANDMENT CAME, SIN REVIVED, AND I DIED." — ROMANS 7:9',
-            '"WIDE IS THE GATE, AND BROAD IS THE WAY, THAT LEADS TO DESTRUCTION." — MATTHEW 7:13',
             '"LET THE DEAD BURY THEIR DEAD." — MATTHEW 8:22',
-            '"MY GOD, MY GOD, WHY HAVE YOU FORSAKEN ME?" — MATTHEW 27:46',
-            '"TO EVERYTHING THERE IS A SEASON, AND A TIME TO EVERY PURPOSE UNDER THE HEAVEN." — ECCLESIASTES 3:1',
-            '"MAN IS LIKE A BREATH; HIS DAYS ARE LIKE A PASSING SHADOW." — PSALM 144:4',
-            '"FOR DUST YOU ARE, AND TO DUST YOU SHALL RETURN." — GENESIS 3:19',
-            '"THE HEART IS DECEITFUL ABOVE ALL THINGS." — JEREMIAH 17:9',
-            '"THE LAST ENEMY THAT SHALL BE DESTROYED IS DEATH." — 1 CORINTHIANS 15:26',
-            '"REMEMBER NOW YOUR CREATOR IN THE DAYS OF YOUR YOUTH." — ECCLESIASTES 12:1',
-            '"ALL FLESH IS GRASS." — ISAIAH 40:6',
-            '"THE LIGHT SHINES IN THE DARKNESS, AND THE DARKNESS HAS NOT OVERCOME IT." — JOHN 1:5',
-            '"WHOEVER WANTS TO SAVE THEIR LIFE WILL LOSE IT." — MATTHEW 16:25'
+            '"MY GOD, MY GOD, WHY HAVE YOU FORSAKEN ME?" — MATTHEW 27:46'
         ];
 
         const colors = {
@@ -398,10 +381,6 @@
             tileCountX = canvas.width / gridSize;
             tileCountY = canvas.height / gridSize;
 
-            if (snake.some(segment => segment.x >= tileCountX || segment.y >= tileCountY)) {
-                resetGame();
-            }
-
             draw();
         }
 
@@ -414,46 +393,6 @@
         }
 
         setSFXVolumes();
-
-        function unlockOneSound(sound) {
-            return new Promise((resolve) => {
-                sound.muted = true;
-                sound.currentTime = 0;
-
-                const playPromise = sound.play();
-
-                if (playPromise !== undefined) {
-                    playPromise
-                        .then(() => {
-                            sound.pause();
-                            sound.currentTime = 0;
-                            sound.muted = false;
-                            resolve(true);
-                        })
-                        .catch(() => {
-                            sound.muted = false;
-                            resolve(false);
-                        });
-                } else {
-                    sound.muted = false;
-                    resolve(false);
-                }
-            });
-        }
-
-        async function unlockAllSounds() {
-            if (!sfxEnabled) return false;
-
-            setSFXVolumes();
-
-            await Promise.all([
-                unlockOneSound(moveSFX),
-                unlockOneSound(eatSFX),
-                unlockOneSound(gameOverSFX)
-            ]);
-
-            return true;
-        }
 
         function playSound(sound) {
             if (!sfxEnabled) return;
@@ -468,7 +407,7 @@
                     playPromise.catch(() => {});
                 }
             } catch (error) {
-                console.warn('Sound playback failed:', error);
+                console.warn(error);
             }
         }
 
@@ -487,7 +426,24 @@
         document.addEventListener('keydown', handleKeyPress);
 
         function handleKeyPress(e) {
-            switch (e.key.toUpperCase()) {
+            const key = e.key.toUpperCase();
+
+            if (!gameStarted && gameRunning) {
+                if (
+                    key === 'ARROWUP' ||
+                    key === 'W' ||
+                    key === 'ARROWDOWN' ||
+                    key === 'S' ||
+                    key === 'ARROWLEFT' ||
+                    key === 'A' ||
+                    key === 'ARROWRIGHT' ||
+                    key === 'D'
+                ) {
+                    gameStarted = true;
+                }
+            }
+
+            switch (key) {
                 case 'ARROWUP':
                 case 'W':
                     if (direction.y === 0) {
@@ -534,7 +490,6 @@
         }
 
         async function startGame() {
-            await unlockAllSounds();
 
             snake = [{
                 x: Math.floor(tileCountX / 2),
@@ -545,6 +500,7 @@
             nextDirection = { x: 1, y: 0 };
 
             score = 0;
+
             gameSpeed = 100;
 
             generateFood();
@@ -553,14 +509,16 @@
             gameRunning = true;
             gamePaused = false;
 
+            gameStarted = false;
+
             gameOverScreen.classList.remove('active');
 
             lastMoveTime = Date.now();
+
             gameLoop();
         }
 
         async function resetGame() {
-            await unlockAllSounds();
 
             snake = [{
                 x: Math.floor(tileCountX / 2),
@@ -571,10 +529,12 @@
             nextDirection = { x: 1, y: 0 };
 
             score = 0;
+
             gameSpeed = 100;
 
             gamePaused = false;
             gameRunning = false;
+            gameStarted = false;
 
             generateFood();
             updateDisplay();
@@ -605,7 +565,7 @@
             const now = Date.now();
             const deltaTime = now - lastMoveTime;
 
-            if (!gamePaused && deltaTime > gameSpeed) {
+            if (gameRunning && gameStarted && !gamePaused && deltaTime > gameSpeed) {
                 update();
                 lastMoveTime = now;
             }
@@ -618,10 +578,6 @@
         }
 
         function update() {
-            updateSinglePlayer();
-        }
-
-        function updateSinglePlayer() {
             direction = nextDirection;
 
             const head = {
@@ -649,15 +605,15 @@
             playMoveSound();
 
             if (head.x === food.x && head.y === food.y) {
+
                 score += 1;
 
                 playCrunchSound();
 
-                if (score % 5 === 0) {
-                    gameSpeed = Math.max(50, gameSpeed - 6);
-                }
+                gameSpeed = Math.max(35, gameSpeed * 0.90);
 
                 generateFood();
+
             } else {
                 snake.pop();
             }
@@ -671,6 +627,7 @@
         }
 
         function draw() {
+
             ctx.fillStyle = colors.background;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -692,6 +649,7 @@
             }
 
             snake.forEach((segment, index) => {
+
                 if (index === 0) {
                     ctx.fillStyle = colors.snakeHead;
                     ctx.shadowBlur = 10;
@@ -717,6 +675,7 @@
             ctx.shadowColor = colors.food;
 
             ctx.beginPath();
+
             ctx.arc(
                 food.x * gridSize + gridSize / 2,
                 food.y * gridSize + gridSize / 2,
@@ -726,18 +685,40 @@
             );
 
             ctx.fill();
+
             ctx.shadowBlur = 0;
 
+            if (!gameStarted && gameRunning) {
+
+                ctx.fillStyle = 'rgba(0, 255, 255, 0.85)';
+                ctx.font = 'bold 28px Courier New';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                ctx.fillText(
+                    'PRESS ANY ARROW KEY TO BEGIN TEMPTATION',
+                    canvas.width / 2,
+                    canvas.height / 2
+                );
+            }
+
             if (gamePaused) {
+
                 ctx.fillStyle = 'rgba(255, 0, 255, 0.75)';
                 ctx.font = 'bold 42px Courier New';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
+
+                ctx.fillText(
+                    'PAUSED',
+                    canvas.width / 2,
+                    canvas.height / 2
+                );
             }
         }
 
         function endGame() {
+
             gameRunning = false;
 
             playExplosionSound();
@@ -757,6 +738,7 @@
 
         resizeCanvas();
         resetGame();
+
     </script>
 </body>
 </html>
