@@ -195,7 +195,8 @@
             overflow-y: auto;
         }
 
-        .rapture-warning {
+        .rapture-warning,
+        .hell-challenge-screen {
             display: none;
             position: fixed;
             inset: 0;
@@ -212,7 +213,8 @@
             overflow: hidden;
         }
 
-        .rapture-warning.active {
+        .rapture-warning.active,
+        .hell-challenge-screen.active {
             display: flex;
         }
 
@@ -237,6 +239,55 @@
             letter-spacing: 2px;
             line-height: 1.35;
             text-align: center;
+        }
+
+        .hell-message-box {
+            width: min(92vw, 1000px);
+            border: 4px solid #ff0000;
+            background: rgba(0, 0, 0, 0.96);
+            box-shadow: 0 0 26px #ff0000, inset 0 0 18px rgba(255, 0, 0, 0.2);
+            padding: clamp(24px, 5vw, 48px);
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hell-red-main {
+            color: #ff0000;
+            font-size: clamp(1.8rem, 5.5vw, 4.6rem);
+            line-height: 1.05;
+            font-weight: bold;
+            text-shadow: 0 0 18px #ff0000, 0 0 34px #ff0000;
+            letter-spacing: 3px;
+        }
+
+        .hell-yellow {
+            color: #ffff00;
+            font-size: clamp(1.1rem, 3vw, 2rem);
+            line-height: 1.3;
+            font-weight: bold;
+            text-shadow: 0 0 12px #ffff00;
+            letter-spacing: 1px;
+        }
+
+        .hell-pink {
+            color: #ff00ff;
+            font-size: clamp(1rem, 2.8vw, 1.8rem);
+            line-height: 1.3;
+            font-weight: bold;
+            text-shadow: 0 0 12px #ff00ff;
+            letter-spacing: 1px;
+        }
+
+        .hell-red-small {
+            color: #ff0000;
+            font-size: clamp(1rem, 2.6vw, 1.6rem);
+            line-height: 1.3;
+            font-weight: bold;
+            text-shadow: 0 0 12px #ff0000;
+            letter-spacing: 1px;
         }
 
         @keyframes raptureFlash {
@@ -288,6 +339,10 @@
                 max-height: 32vh;
                 overflow-y: auto;
             }
+
+            .hell-message-box {
+                gap: 16px;
+            }
         }
     </style>
 </head>
@@ -333,6 +388,10 @@
         <div class="rapture-instructions">AVOID THE RED APPLES AT ALL COSTS.<br>PRESS AN ARROW KEY TO CONTINUE.</div>
     </div>
 
+    <div class="hell-challenge-screen" id="hellChallengeScreen">
+        <div class="hell-message-box" id="hellMessageBox"></div>
+    </div>
+
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d', { alpha: false });
@@ -341,6 +400,8 @@
         const highScoreDisplay = document.getElementById('highScore');
         const gameOverScreen = document.getElementById('gameOverScreen');
         const raptureWarning = document.getElementById('raptureWarning');
+        const hellChallengeScreen = document.getElementById('hellChallengeScreen');
+        const hellMessageBox = document.getElementById('hellMessageBox');
 
         const eatSFX = document.getElementById('eatSFX');
         const gameOverSFX = document.getElementById('gameOverSFX');
@@ -354,6 +415,10 @@
         const fruitsPerSpeedUp = 5;
 
         const maxCursedUpdatesPerTick = 8;
+
+        const inversionFirstTriggerScore = 13;
+        const inversionCycleGap = 13;
+        const inversionDurationFruits = 6;
 
         const raptureStages = [
             {
@@ -464,6 +529,12 @@
         let gameStarted = false;
         let isRaptureMode = false;
         let showingRaptureWarning = false;
+
+        let controlsInverted = false;
+        let nextInversionTriggerScore = inversionFirstTriggerScore;
+        let inversionReturnScore = null;
+        let hellChallengeActive = false;
+        let hellChallengeType = '';
 
         let gameSpeed = startSpeed;
         let gameTimer = null;
@@ -596,7 +667,7 @@
             clearGameTimer();
 
             gameTimer = setInterval(() => {
-                if (!gameRunning || gamePaused || !gameStarted) return;
+                if (!gameRunning || gamePaused || !gameStarted || hellChallengeActive) return;
 
                 update();
                 draw();
@@ -604,9 +675,70 @@
         }
 
         function restartGameTimerWithNewSpeed() {
-            if (gameRunning && gameStarted && !gamePaused) {
+            if (gameRunning && gameStarted && !gamePaused && !hellChallengeActive) {
                 startGameTimer();
             }
+        }
+
+        function pauseForChallenge() {
+            gamePaused = true;
+            clearGameTimer();
+        }
+
+        function continueAfterChallenge() {
+            hellChallengeActive = false;
+            hellChallengeType = '';
+            hellChallengeScreen.classList.remove('active');
+            gamePaused = false;
+
+            if (gameRunning && gameStarted) {
+                startGameTimer();
+            }
+
+            draw();
+        }
+
+        function showHellChallengeStart() {
+            hellChallengeActive = true;
+            hellChallengeType = 'start';
+            controlsInverted = true;
+            inversionReturnScore = score + inversionDurationFruits;
+
+            activeGlitchText = 'IN HELL, THEY WALK BACKWARDS';
+            glitchTicks = 4;
+
+            hellMessageBox.innerHTML = `
+                <div class="hell-red-main">IN HELL, THEY WALK BACKWARDS.</div>
+                <div class="hell-yellow">Up is down, down is up.</div>
+                <div class="hell-yellow">Left is right, right is left.</div>
+                <div class="hell-pink">Eat 6 more pink apples to return to earth.</div>
+                <div class="hell-red-small">Press space to continue.</div>
+            `;
+
+            pauseForChallenge();
+            draw();
+            hellChallengeScreen.classList.add('active');
+        }
+
+        function showHellChallengeEnd() {
+            hellChallengeActive = true;
+            hellChallengeType = 'end';
+            controlsInverted = false;
+            inversionReturnScore = null;
+            nextInversionTriggerScore = score + inversionCycleGap;
+
+            activeGlitchText = 'EVERYTHING IS FINE AGAIN';
+            glitchTicks = 3;
+
+            hellMessageBox.innerHTML = `
+                <div class="hell-red-main">EVERYTHING IS FINE AGAIN.</div>
+                <div class="hell-yellow">FOR NOW.</div>
+                <div class="hell-red-small">Press space to continue.</div>
+            `;
+
+            pauseForChallenge();
+            draw();
+            hellChallengeScreen.classList.add('active');
         }
 
         function resizeCanvas() {
@@ -630,7 +762,7 @@
             clearGameTimer();
             resizeCanvas();
 
-            if (gameRunning && gameStarted && !gamePaused) {
+            if (gameRunning && gameStarted && !gamePaused && !hellChallengeActive) {
                 startGameTimer();
             }
         });
@@ -679,6 +811,15 @@
                 key === 'ARROWRIGHT' ||
                 key === 'D';
 
+            if (hellChallengeActive) {
+                if (key === ' ') {
+                    e.preventDefault();
+                    continueAfterChallenge();
+                }
+
+                return;
+            }
+
             if (showingRaptureWarning && isDirectionKey) {
                 showingRaptureWarning = false;
                 raptureWarning.classList.remove('active');
@@ -692,36 +833,45 @@
                 startGameTimer();
             }
 
-            switch (key) {
-                case 'ARROWUP':
-                case 'W':
-                    if (direction.y === 0) nextDirection = { x: 0, y: -1 };
-                    break;
+            if (isDirectionKey) {
+                setNextDirectionFromKey(key);
+                return;
+            }
 
-                case 'ARROWDOWN':
-                case 'S':
-                    if (direction.y === 0) nextDirection = { x: 0, y: 1 };
-                    break;
+            if (key === ' ') {
+                e.preventDefault();
+                togglePause();
+            }
+        }
 
-                case 'ARROWLEFT':
-                case 'A':
-                    if (direction.x === 0) nextDirection = { x: -1, y: 0 };
-                    break;
+        function setNextDirectionFromKey(key) {
+            let desiredDirection = null;
 
-                case 'ARROWRIGHT':
-                case 'D':
-                    if (direction.x === 0) nextDirection = { x: 1, y: 0 };
-                    break;
+            if (!controlsInverted) {
+                if (key === 'ARROWUP' || key === 'W') desiredDirection = { x: 0, y: -1 };
+                if (key === 'ARROWDOWN' || key === 'S') desiredDirection = { x: 0, y: 1 };
+                if (key === 'ARROWLEFT' || key === 'A') desiredDirection = { x: -1, y: 0 };
+                if (key === 'ARROWRIGHT' || key === 'D') desiredDirection = { x: 1, y: 0 };
+            } else {
+                if (key === 'ARROWUP' || key === 'W') desiredDirection = { x: 0, y: 1 };
+                if (key === 'ARROWDOWN' || key === 'S') desiredDirection = { x: 0, y: -1 };
+                if (key === 'ARROWLEFT' || key === 'A') desiredDirection = { x: 1, y: 0 };
+                if (key === 'ARROWRIGHT' || key === 'D') desiredDirection = { x: -1, y: 0 };
+            }
 
-                case ' ':
-                    e.preventDefault();
-                    togglePause();
-                    break;
+            if (!desiredDirection) return;
+
+            if (desiredDirection.x !== 0 && direction.x === 0) {
+                nextDirection = desiredDirection;
+            }
+
+            if (desiredDirection.y !== 0 && direction.y === 0) {
+                nextDirection = desiredDirection;
             }
         }
 
         function togglePause() {
-            if (!gameRunning) return;
+            if (!gameRunning || hellChallengeActive) return;
 
             gamePaused = !gamePaused;
 
@@ -732,6 +882,15 @@
             }
 
             draw();
+        }
+
+        function resetChallengeState() {
+            controlsInverted = false;
+            nextInversionTriggerScore = inversionFirstTriggerScore;
+            inversionReturnScore = null;
+            hellChallengeActive = false;
+            hellChallengeType = '';
+            hellChallengeScreen.classList.remove('active');
         }
 
         function startGame() {
@@ -754,6 +913,8 @@
             gameSpeed = startSpeed;
             isRaptureMode = false;
             cursedFruits = [];
+
+            resetChallengeState();
 
             generateFood();
             updateDisplay();
@@ -789,6 +950,8 @@
             gameSpeed = raptureStartSpeed;
             isRaptureMode = true;
             cursedFruits = [];
+
+            resetChallengeState();
 
             generateFood();
             syncRaptureStage();
@@ -826,6 +989,8 @@
             gameSpeed = startSpeed;
             isRaptureMode = false;
             cursedFruits = [];
+
+            resetChallengeState();
 
             gameRunning = false;
             gamePaused = false;
@@ -1075,7 +1240,7 @@
         }
 
         function maybeTriggerGlitch() {
-            if (!isRaptureMode || showingRaptureWarning || glitchTicks > 0) return;
+            if (!isRaptureMode || showingRaptureWarning || glitchTicks > 0 || hellChallengeActive) return;
 
             const stage = getRaptureStage();
 
@@ -1150,6 +1315,19 @@
             return true;
         }
 
+        function maybeTriggerInversionChallenge() {
+            if (!isRaptureMode || hellChallengeActive) return;
+
+            if (!controlsInverted && nextInversionTriggerScore !== null && score >= nextInversionTriggerScore) {
+                showHellChallengeStart();
+                return;
+            }
+
+            if (controlsInverted && inversionReturnScore !== null && score >= inversionReturnScore) {
+                showHellChallengeEnd();
+            }
+        }
+
         function update() {
             tickCount++;
             direction = nextDirection;
@@ -1192,6 +1370,7 @@
 
                 syncRaptureStage();
                 generateFood();
+                maybeTriggerInversionChallenge();
             } else {
                 snake.pop();
             }
@@ -1295,7 +1474,7 @@
                 );
             }
 
-            if (gamePaused) {
+            if (gamePaused && !hellChallengeActive) {
                 ctx.fillStyle = 'rgba(255, 0, 255, 0.75)';
                 ctx.font = 'bold 42px Courier New';
                 ctx.textAlign = 'center';
@@ -1383,6 +1562,8 @@
 
             gameRunning = false;
             gameStarted = false;
+            hellChallengeActive = false;
+            controlsInverted = false;
 
             playExplosionSound();
 
@@ -1398,6 +1579,7 @@
 
             gameOverScreen.classList.add('active');
             raptureWarning.classList.remove('active');
+            hellChallengeScreen.classList.remove('active');
 
             showingRaptureWarning = false;
         }
